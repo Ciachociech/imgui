@@ -11,7 +11,6 @@ option(IMGUI_DEFINE_MATH_OPERATORS "Enable ImGui ImVec2/ImVec4 operators" OFF)
 option(IMGUI_BUILD_EXAMPLES "" OFF)
 
 add_library(imgui 
-    "${imgui_SOURCE_DIR}/imconfig.h"
     "${imgui_SOURCE_DIR}/imgui.cpp"
     "${imgui_SOURCE_DIR}/imgui_demo.cpp"
     "${imgui_SOURCE_DIR}/imgui_draw.cpp"
@@ -21,6 +20,7 @@ add_library(imgui
     "${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp"
     "${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.h"
     "${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp"
+    "${imgui_SOURCE_DIR}/include/imconfig.h"
     "${imgui_SOURCE_DIR}/include/imgui.h"
     "${imgui_SOURCE_DIR}/include/imgui_internal.h"
     "${imgui_SOURCE_DIR}/include/imstb_rectpack.h"
