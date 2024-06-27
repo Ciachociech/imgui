@@ -8,9 +8,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 option(IMGUI_USE_DARK_THEME "Use Dark ImGui Spectrum Theme" OFF)
 option(IMGUI_DEFINE_MATH_OPERATORS "Enable ImGui ImVec2/ImVec4 operators" OFF)
-option(IMGUI_BUILD_EXAMPLES "" OFF)
+option(IMGUI_BUILD_EXAMPLES "" ON)
 
-add_library(imgui 
+add_library(imgui STATIC
     "${imgui_SOURCE_DIR}/imgui.cpp"
     "${imgui_SOURCE_DIR}/imgui_demo.cpp"
     "${imgui_SOURCE_DIR}/imgui_draw.cpp"
@@ -42,7 +42,11 @@ target_compile_definitions(imgui PUBLIC
     IMGUI_DISABLE_OBSOLETE_FUNCTIONS # to check for obsolete functions
     # IMGUI_USER_CONFIG="${PROJECT_SOURCE_DIR}/path/to/imconfig.h" # to use your own imconfig.h
 )
-target_include_directories(imgui PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+
+target_include_directories(imgui PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/backends
+)
 target_compile_features(imgui PUBLIC cxx_std_23)
 
 # the following should go in different files, but we're keeping things here to avoid future conflicts. 
@@ -64,6 +68,12 @@ if(NOT TARGET glfw)
 endif()
 
 target_link_libraries(imgui PUBLIC glfw)
+find_package(OpenGL REQUIRED)
+if(TARGET OpenGL::OpenGL)
+    target_link_libraries(imgui PUBLIC OpenGL::OpenGL)
+else()
+    target_link_libraries(imgui PUBLIC OpenGL::GL)
+endif()
 
 if(IMGUI_BUILD_EXAMPLES)
     add_executable(imgui_example
