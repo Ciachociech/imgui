@@ -1,4 +1,4 @@
-If you want to sync this fork with a ocornut's ImGui repository (that OG), instead of using build-in GitHub's tool/option described here () please provide these steps:
+If you want to sync this fork with a ocornut's ImGui repository (that OG), instead of using build-in GitHub's tool/option described here (https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork) please provide these steps:
 
 1. Create a new branch and update it with OG changes
 git checkout -b ocornut-master master
