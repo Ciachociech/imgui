@@ -1776,14 +1776,14 @@ void ImGui::ShrinkWidths(ImGuiShrinkWidthItem* items, int count, float width_exc
     // Round width and redistribute remainder
     // Ensure that e.g. the right-most tab of a shrunk tab-bar always reaches exactly at the same distance from the right-most edge of the tab bar separator.
     width_excess = 0.0f;
-    for (int n = 0; n < count; n++)
+    for (auto n = 0; n < count; n++)
     {
         float width_rounded = ImTrunc(items[n].Width);
         width_excess += items[n].Width - width_rounded;
         items[n].Width = width_rounded;
     }
     while (width_excess > 0.0f)
-        for (int n = 0; n < count && width_excess > 0.0f; n++)
+        for (auto n = 0; n < count && width_excess > 0.0f; n++)
         {
             float width_to_add = ImMin(items[n].InitialWidth - items[n].Width, 1.0f);
             items[n].Width += width_to_add;
@@ -8390,7 +8390,7 @@ void ImGuiMenuColumns::CalcNextTotalWidth(bool update_offsets)
 {
     ImU16 offset = 0;
     bool want_spacing = false;
-    for (int i = 0; i < IM_ARRAYSIZE(Widths); i++)
+    for (auto i = 0; i < IM_ARRAYSIZE(Widths); i++)
     {
         ImU16 width = Widths[i];
         if (want_spacing && width > 0)
@@ -9144,7 +9144,7 @@ static void ImGui::TabBarLayout(ImGuiTabBar* tab_bar)
     int tab_dst_n = 0;
     bool need_sort_by_section = false;
     ImGuiTabBarSection sections[3]; // Layout sections: Leading, Central, Trailing
-    for (int tab_src_n = 0; tab_src_n < tab_bar->Tabs.Size; tab_src_n++)
+    for (auto tab_src_n = 0; tab_src_n < tab_bar->Tabs.Size; tab_src_n++)
     {
         ImGuiTabItem* tab = &tab_bar->Tabs[tab_src_n];
         if (tab->LastFrameVisible < tab_bar->PrevFrameVisible || tab->WantClose)
@@ -9219,7 +9219,7 @@ static void ImGui::TabBarLayout(ImGuiTabBar* tab_bar)
     ImGuiTabItem* most_recently_selected_tab = NULL;
     int curr_section_n = -1;
     bool found_selected_tab_id = false;
-    for (int tab_n = 0; tab_n < tab_bar->Tabs.Size; tab_n++)
+    for (auto tab_n = 0; tab_n < tab_bar->Tabs.Size; tab_n++)
     {
         ImGuiTabItem* tab = &tab_bar->Tabs[tab_n];
         IM_ASSERT(tab->LastFrameVisible >= tab_bar->PrevFrameVisible);
@@ -9245,7 +9245,7 @@ static void ImGui::TabBarLayout(ImGuiTabBar* tab_bar)
 
         // Store data so we can build an array sorted by width if we need to shrink tabs down
         IM_MSVC_WARNING_SUPPRESS(6385);
-        ImGuiShrinkWidthItem* shrink_width_item = &g.ShrinkWidthBuffer[shrink_buffer_indexes[section_n]++];
+        ImGuiShrinkWidthItem* shrink_width_item = &g.ShrinkWidthBuffer[shrink_buffer_indexes[section_n]++];    // CONSIDER CHANGING
         shrink_width_item->Index = tab_n;
         shrink_width_item->Width = shrink_width_item->InitialWidth = tab->ContentWidth;
         tab->Width = ImMax(tab->ContentWidth, 1.0f);
@@ -9253,7 +9253,7 @@ static void ImGui::TabBarLayout(ImGuiTabBar* tab_bar)
 
     // Compute total ideal width (used for e.g. auto-resizing a window)
     tab_bar->WidthAllTabsIdeal = 0.0f;
-    for (int section_n = 0; section_n < 3; section_n++)
+    for (auto section_n = 0; section_n < 3; section_n++)
         tab_bar->WidthAllTabsIdeal += sections[section_n].Width + sections[section_n].Spacing;
 
     // Horizontal scrolling buttons
@@ -9285,7 +9285,7 @@ static void ImGui::TabBarLayout(ImGuiTabBar* tab_bar)
         ShrinkWidths(g.ShrinkWidthBuffer.Data + shrink_data_offset, shrink_data_count, width_excess);
 
         // Apply shrunk values into tabs and sections
-        for (int tab_n = shrink_data_offset; tab_n < shrink_data_offset + shrink_data_count; tab_n++)
+        for (auto tab_n = shrink_data_offset; tab_n < shrink_data_offset + shrink_data_count; tab_n++)
         {
             ImGuiTabItem* tab = &tab_bar->Tabs[g.ShrinkWidthBuffer[tab_n].Index];
             float shrinked_width = IM_TRUNC(g.ShrinkWidthBuffer[tab_n].Width);
@@ -9303,13 +9303,13 @@ static void ImGui::TabBarLayout(ImGuiTabBar* tab_bar)
     int section_tab_index = 0;
     float tab_offset = 0.0f;
     tab_bar->WidthAllTabs = 0.0f;
-    for (int section_n = 0; section_n < 3; section_n++)
+    for (auto section_n = 0; section_n < 3; section_n++)
     {
         ImGuiTabBarSection* section = &sections[section_n];
         if (section_n == 2)
             tab_offset = ImMin(ImMax(0.0f, tab_bar->BarRect.GetWidth() - section->Width), tab_offset);
 
-        for (int tab_n = 0; tab_n < section->TabCount; tab_n++)
+        for (auto tab_n = 0; tab_n < section->TabCount; tab_n++)
         {
             ImGuiTabItem* tab = &tab_bar->Tabs[section_tab_index + tab_n];
             tab->Offset = tab_offset;
@@ -9403,7 +9403,7 @@ static float ImGui::TabBarCalcMaxTabWidth()
 ImGuiTabItem* ImGui::TabBarFindTabByID(ImGuiTabBar* tab_bar, ImGuiID tab_id)
 {
     if (tab_id != 0)
-        for (int n = 0; n < tab_bar->Tabs.Size; n++)
+        for (auto n = 0; n < tab_bar->Tabs.Size; n++)
             if (tab_bar->Tabs[n].ID == tab_id)
                 return &tab_bar->Tabs[n];
     return NULL;
@@ -9534,7 +9534,7 @@ void ImGui::TabBarQueueReorderFromMousePos(ImGuiTabBar* tab_bar, ImGuiTabItem* s
     const int dir = (bar_offset + src_tab->Offset) > mouse_pos.x ? -1 : +1;
     const int src_idx = tab_bar->Tabs.index_from_ptr(src_tab);
     int dst_idx = src_idx;
-    for (int i = src_idx; i >= 0 && i < tab_bar->Tabs.Size; i += dir)
+    for (auto i = src_idx; i >= 0 && i < tab_bar->Tabs.Size; i += dir)
     {
         // Reordered tabs must share the same section
         const ImGuiTabItem* dst_tab = &tab_bar->Tabs[i];
@@ -9669,7 +9669,7 @@ static ImGuiTabItem* ImGui::TabBarTabListPopupButton(ImGuiTabBar* tab_bar)
     ImGuiTabItem* tab_to_select = NULL;
     if (open)
     {
-        for (int tab_n = 0; tab_n < tab_bar->Tabs.Size; tab_n++)
+        for (auto tab_n = 0; tab_n < tab_bar->Tabs.Size; tab_n++)
         {
             ImGuiTabItem* tab = &tab_bar->Tabs[tab_n];
             if (tab->Flags & ImGuiTabItemFlags_Button)
