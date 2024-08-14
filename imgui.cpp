@@ -1344,7 +1344,7 @@ ImGuiIO::ImGuiIO()
     IniFilename = "imgui.ini"; // Important: "imgui.ini" is relative to current working dir, most apps will want to lock this to an absolute path (e.g. same path as executables).
     LogFilename = "imgui_log.txt";
 #ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
-    for (int i = 0; i < ImGuiKey_COUNT; i++)
+    for (auto i = 0; i < ImGuiKey_COUNT; i++)
         KeyMap[i] = -1;
 #endif
     UserData = NULL;
@@ -1389,8 +1389,8 @@ ImGuiIO::ImGuiIO()
     MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
     MousePosPrev = ImVec2(-FLT_MAX, -FLT_MAX);
     MouseSource = ImGuiMouseSource_Mouse;
-    for (int i = 0; i < IM_ARRAYSIZE(MouseDownDuration); i++) MouseDownDuration[i] = MouseDownDurationPrev[i] = -1.0f;
-    for (int i = 0; i < IM_ARRAYSIZE(KeysData); i++) { KeysData[i].DownDuration = KeysData[i].DownDurationPrev = -1.0f; }
+    for (auto i = 0; i < IM_ARRAYSIZE(MouseDownDuration); i++) MouseDownDuration[i] = MouseDownDurationPrev[i] = -1.0f;
+    for (auto i = 0; i < IM_ARRAYSIZE(KeysData); i++) { KeysData[i].DownDuration = KeysData[i].DownDurationPrev = -1.0f; }
     AppAcceptingEvents = true;
     BackendUsingLegacyKeyArrays = (ImS8)-1;
     BackendUsingLegacyNavInputArray = true; // assume using legacy array until proven wrong
@@ -2670,7 +2670,7 @@ void ImGuiStorage::SetVoidPtr(ImGuiID key, void* val)
 
 void ImGuiStorage::SetAllInt(int v)
 {
-    for (int i = 0; i < Data.Size; i++)
+    for (auto i = 0; i < Data.Size; i++)
         Data[i].val_i = v;
 }
 
@@ -2872,13 +2872,13 @@ static void ImGuiListClipper_SortAndFuseRanges(ImVector<ImGuiListClipperRange>& 
         return;
 
     // Helper to order ranges and fuse them together if possible (bubble sort is fine as we are only sorting 2-3 entries)
-    for (int sort_end = ranges.Size - offset - 1; sort_end > 0; --sort_end)
-        for (int i = offset; i < sort_end + offset; ++i)
+    for (auto sort_end = ranges.Size - offset - 1; sort_end > 0; --sort_end)
+        for (auto i = offset; i < sort_end + offset; ++i)
             if (ranges[i].Min > ranges[i + 1].Min)
                 ImSwap(ranges[i], ranges[i + 1]);
 
     // Now fuse ranges together as much as possible.
-    for (int i = 1 + offset; i < ranges.Size; i++)
+    for (auto i = 1 + offset; i < ranges.Size; i++)
     {
         IM_ASSERT(!ranges[i].PosToIndexConvert && !ranges[i - 1].PosToIndexConvert);
         if (ranges[i - 1].Max < ranges[i].Min)
@@ -4644,7 +4644,7 @@ void ImGui::UpdateHoveredWindowAndCaptureFlags()
     const bool has_open_modal = (modal_window != NULL);
     int mouse_earliest_down = -1;
     bool mouse_any_down = false;
-    for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++)
+    for (auto i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++)
     {
         if (io.MouseClicked[i])
         {
@@ -4719,7 +4719,7 @@ void ImGui::NewFrame()
 
     // Remove pending delete hooks before frame start.
     // This deferred removal avoid issues of removal while iterating the hook vector
-    for (int n = g.Hooks.Size - 1; n >= 0; n--)
+    for (auto n = g.Hooks.Size - 1; n >= 0; n--)
         if (g.Hooks[n].Type == ImGuiContextHookType_PendingRemoval_)
             g.Hooks.erase(&g.Hooks[n]);
 
@@ -5037,7 +5037,7 @@ static void FlattenDrawDataIntoSingleLayer(ImDrawDataBuilder* builder)
 {
     int n = builder->Layers[0]->Size;
     int full_size = n;
-    for (int i = 1; i < IM_ARRAYSIZE(builder->Layers); i++)
+    for (auto i = 1; i < IM_ARRAYSIZE(builder->Layers); i++)
         full_size += builder->Layers[i]->Size;
     builder->Layers[0]->resize(full_size);
     for (int layer_n = 1; layer_n < IM_ARRAYSIZE(builder->Layers); layer_n++)
@@ -5299,7 +5299,7 @@ void ImGui::Render()
         if (IsWindowActiveAndVisible(window) && (window->Flags & ImGuiWindowFlags_ChildWindow) == 0 && window != windows_to_render_top_most[0] && window != windows_to_render_top_most[1])
             AddRootWindowToDrawData(window);
     }
-    for (int n = 0; n < IM_ARRAYSIZE(windows_to_render_top_most); n++)
+    for (auto n = 0; n < IM_ARRAYSIZE(windows_to_render_top_most); n++)
         if (windows_to_render_top_most[n] && IsWindowActiveAndVisible(windows_to_render_top_most[n])) // NavWindowingTarget is always temporarily displayed as the top-most window
             AddRootWindowToDrawData(windows_to_render_top_most[n]);
 
@@ -5785,7 +5785,7 @@ static void UpdateWindowInFocusOrderList(ImGuiWindow* window, bool just_created,
     else if (!just_created && child_flag_changed && new_is_explicit_child)
     {
         IM_ASSERT(g.WindowsFocusOrder[window->FocusOrder] == window);
-        for (int n = window->FocusOrder + 1; n < g.WindowsFocusOrder.Size; n++)
+        for (auto n = window->FocusOrder + 1; n < g.WindowsFocusOrder.Size; n++)
             g.WindowsFocusOrder[n]->FocusOrder--;
         g.WindowsFocusOrder.erase(g.WindowsFocusOrder.Data + window->FocusOrder);
         window->FocusOrder = -1;
@@ -6089,7 +6089,7 @@ static int ImGui::UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& si
 
     // Manual resize grips
     PushID("#RESIZE");
-    for (int resize_grip_n = 0; resize_grip_n < resize_grip_count; resize_grip_n++)
+    for (auto resize_grip_n = 0; resize_grip_n < resize_grip_count; resize_grip_n++)
     {
         const ImGuiResizeGripDef& def = resize_grip_def[resize_grip_n];
         const ImVec2 corner = ImLerp(window->Pos, window->Pos + window->Size, def.CornerPosN);
@@ -6389,7 +6389,7 @@ void ImGui::RenderWindowDecorations(ImGuiWindow* window, const ImRect& title_bar
         // Render resize grips (after their input handling so we don't have a frame of latency)
         if (handle_borders_and_resize_grips && !(flags & ImGuiWindowFlags_NoResize))
         {
-            for (int resize_grip_n = 0; resize_grip_n < resize_grip_count; resize_grip_n++)
+            for (auto resize_grip_n = 0; resize_grip_n < resize_grip_count; resize_grip_n++)
             {
                 const ImU32 col = resize_grip_col[resize_grip_n];
                 if ((col & IM_COL32_A_MASK) == 0)
@@ -7391,7 +7391,7 @@ void ImGui::BringWindowToFocusFront(ImGuiWindow* window)
         return;
 
     const int new_order = g.WindowsFocusOrder.Size - 1;
-    for (int n = cur_order; n < new_order; n++)
+    for (auto n = cur_order; n < new_order; n++)
     {
         g.WindowsFocusOrder[n] = g.WindowsFocusOrder[n + 1];
         g.WindowsFocusOrder[n]->FocusOrder--;
@@ -7407,7 +7407,7 @@ void ImGui::BringWindowToDisplayFront(ImGuiWindow* window)
     ImGuiWindow* current_front_window = g.Windows.back();
     if (current_front_window == window || current_front_window->RootWindow == window) // Cheap early out (could be better)
         return;
-    for (int i = g.Windows.Size - 2; i >= 0; i--) // We can ignore the top-most window
+    for (auto i = g.Windows.Size - 2; i >= 0; i--) // We can ignore the top-most window
         if (g.Windows[i] == window)
         {
             memmove(&g.Windows[i], &g.Windows[i + 1], (size_t)(g.Windows.Size - i - 1) * sizeof(ImGuiWindow*));
@@ -8744,7 +8744,7 @@ static int CalcRoutingScore(ImGuiID focus_scope_id, ImGuiID owner_id, ImGuiInput
         // This essentially follow the window->ParentWindowForFocusRoute chain.
         if (focus_scope_id == 0)
             return 255;
-        for (int index_in_focus_path = 0; index_in_focus_path < g.NavFocusRoute.Size; index_in_focus_path++)
+        for (auto index_in_focus_path = 0; index_in_focus_path < g.NavFocusRoute.Size; index_in_focus_path++)
             if (g.NavFocusRoute.Data[index_in_focus_path].ID == focus_scope_id)
                 return 3 + index_in_focus_path;
         return 255;
@@ -9193,13 +9193,13 @@ static void ImGui::UpdateKeyboardInputs()
     if (io.BackendUsingLegacyKeyArrays == 0)
     {
         // Backend used new io.AddKeyEvent() API: Good! Verify that old arrays are never written to externally.
-        for (int n = 0; n < ImGuiKey_LegacyNativeKey_END; n++)
+        for (auto n = 0; n < ImGuiKey_LegacyNativeKey_END; n++)
             IM_ASSERT((io.KeysDown[n] == false || IsKeyDown((ImGuiKey)n)) && "Backend needs to either only use io.AddKeyEvent(), either only fill legacy io.KeysDown[] + io.KeyMap[]. Not both!");
     }
     else
     {
         if (g.FrameCount == 0)
-            for (int n = ImGuiKey_LegacyNativeKey_BEGIN; n < ImGuiKey_LegacyNativeKey_END; n++)
+            for (auto n = ImGuiKey_LegacyNativeKey_BEGIN; n < ImGuiKey_LegacyNativeKey_END; n++)
                 IM_ASSERT(g.IO.KeyMap[n] == -1 && "Backend is not allowed to write to io.KeyMap[0..511]!");
 
         // Build reverse KeyMap (Named -> Legacy)
@@ -9349,7 +9349,7 @@ static void ImGui::UpdateMouseInputs()
     if (io.MouseDelta.x != 0.0f || io.MouseDelta.y != 0.0f)
         g.NavDisableMouseHover = false;
 
-    for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++)
+    for (auto i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++)
     {
         io.MouseClicked[i] = io.MouseDown[i] && io.MouseDownDuration[i] < 0.0f;
         io.MouseClickedCount[i] = 0; // Will be filled below
@@ -9414,7 +9414,7 @@ static ImGuiWindow* FindBestWheelingWindow(const ImVec2& wheel)
     // For each axis, find window in the hierarchy that may want to use scrolling
     ImGuiContext& g = *GImGui;
     ImGuiWindow* windows[2] = { NULL, NULL };
-    for (int axis = 0; axis < 2; axis++)
+    for (auto axis = 0; axis < 2; axis++)
         if (wheel[axis] != 0.0f)
             for (ImGuiWindow* window = windows[axis] = g.HoveredWindow; window->Flags & ImGuiWindowFlags_ChildWindow; window = windows[axis] = window->ParentWindow)
             {
@@ -11663,7 +11663,7 @@ void ImGui::NavHighlightActivated(ImGuiID id)
 void ImGui::NavClearPreferredPosForAxis(ImGuiAxis axis)
 {
     ImGuiContext& g = *GImGui;
-    g.NavWindow->RootWindowForNav->NavPreferredScoringPosRel[g.NavLayer][axis] = FLT_MAX;
+    g.NavWindow->RootWindowForNav->NavPreferredScoringPosRel[g.NavLayer][axis] = FLT_MAX;     // DO A multi-dim
 }
 
 void ImGui::SetNavID(ImGuiID id, ImGuiNavLayer nav_layer, ImGuiID focus_scope_id, const ImRect& rect_rel)
