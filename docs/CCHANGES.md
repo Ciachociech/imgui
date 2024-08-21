@@ -1,8 +1,11 @@
 C++23 changes:
 [N] - () optional for lambdas (P1102R2)
 [?] - Literal suffix for (signed) size_t (P0330R8)
-[P] - multidimensional subscript operator (P2128R6)
-[] - if consteval (P1938R3)
+[N] - multidimensional subscript operator (P2128R6)
+[N] - if consteval (P1938R3)
+[D] - narrowing contextual conversions in static_assert and constexpr if (P1401R5)
+[N] - mixed string literal concatenation (P2201R1)
+[] - deducing this (P0847R7)
 
 Older standards:
 [E] - auto types in for loops
