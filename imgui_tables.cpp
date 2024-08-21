@@ -693,12 +693,12 @@ void ImGui::TableBeginApplyRequests(ImGuiTable* table)
             const int dst_order = dst_column->DisplayOrder;
             src_column->DisplayOrder = (ImGuiTableColumnIdx)dst_order;
             for (auto order_n = src_order + reorder_dir; order_n != dst_order + reorder_dir; order_n += reorder_dir)
-                table->Columns[table->DisplayOrderToIndex[order_n]].DisplayOrder -= (ImGuiTableColumnIdx)reorder_dir;   // CONSIDER CHANGING
+                table->Columns[table->DisplayOrderToIndex[order_n]].DisplayOrder -= (ImGuiTableColumnIdx)reorder_dir;
             IM_ASSERT(dst_column->DisplayOrder == dst_order - reorder_dir);
 
             // Display order is stored in both columns->IndexDisplayOrder and table->DisplayOrder[]. Rebuild later from the former.
             for (auto column_n = 0; column_n < table->ColumnsCount; column_n++)
-                table->DisplayOrderToIndex[table->Columns[column_n].DisplayOrder] = (ImGuiTableColumnIdx)column_n;   // CONSIDER CHANGING
+                table->DisplayOrderToIndex[table->Columns[column_n].DisplayOrder] = (ImGuiTableColumnIdx)column_n;
             table->ReorderColumnDir = 0;
             table->IsSettingsDirty = true;
         }
@@ -990,7 +990,7 @@ void ImGui::TableUpdateLayout(ImGuiTable* table)
         {
             if (!IM_BITARRAY_TESTBIT(table->EnabledMaskByDisplayOrder, order_n))
                 continue;
-            ImGuiTableColumn* column = &table->Columns[table->DisplayOrderToIndex[order_n]];   // CONSIDER CHANGING
+            ImGuiTableColumn* column = &table->Columns[table->DisplayOrderToIndex[order_n]];
             if (!(column->Flags & ImGuiTableColumnFlags_WidthStretch))
                 continue;
             column->WidthRequest += 1.0f;
@@ -1239,7 +1239,7 @@ void ImGui::TableUpdateLayout(ImGuiTable* table)
 
     // [Part 13] Setup inner window decoration size (for scrolling / nav tracking to properly take account of frozen rows/columns)
     if (table->FreezeColumnsRequest > 0)
-        table->InnerWindow->DecoInnerSizeX1 = table->Columns[table->DisplayOrderToIndex[table->FreezeColumnsRequest - 1]].MaxX - table->OuterRect.Min.x;   // CONSIDER CHANGING
+        table->InnerWindow->DecoInnerSizeX1 = table->Columns[table->DisplayOrderToIndex[table->FreezeColumnsRequest - 1]].MaxX - table->OuterRect.Min.x;
     if (table->FreezeRowsRequest > 0)
         table->InnerWindow->DecoInnerSizeY1 = table_instance->LastFrozenHeight;
     table_instance->LastFrozenHeight = 0.0f;
@@ -1632,7 +1632,7 @@ void ImGui::TableSetupScrollFreeze(int columns, int rows)
         int order_n = table->DisplayOrderToIndex[column_n];
         if (order_n != column_n && order_n >= table->FreezeColumnsRequest)
         {
-            ImSwap(table->Columns[table->DisplayOrderToIndex[order_n]].DisplayOrder, table->Columns[table->DisplayOrderToIndex[column_n]].DisplayOrder);   // CONSIDER CHANGING
+            ImSwap(table->Columns[table->DisplayOrderToIndex[order_n]].DisplayOrder, table->Columns[table->DisplayOrderToIndex[column_n]].DisplayOrder);
             ImSwap(table->DisplayOrderToIndex[order_n], table->DisplayOrderToIndex[column_n]);
         }
     }
@@ -2815,7 +2815,7 @@ void ImGui::TableFixColumnSortDirection(ImGuiTable* table, ImGuiTableColumn* col
 // Calculate next sort direction that would be set after clicking the column
 // - If the PreferSortDescending flag is set, we will default to a Descending direction on the first click.
 // - Note that the PreferSortAscending flag is never checked, it is essentially the default and therefore a no-op.
-IM_STATIC_ASSERT(ImGuiSortDirection_None == 0 && ImGuiSortDirection_Ascending == 1 && ImGuiSortDirection_Descending == 2);
+IM_STATIC_ASSERT(!ImGuiSortDirection_None && ImGuiSortDirection_Ascending == 1 && ImGuiSortDirection_Descending == 2);
 ImGuiSortDirection ImGui::TableGetColumnNextSortDirection(ImGuiTableColumn* column)
 {
     IM_ASSERT(column->SortDirectionsAvailCount > 0);
