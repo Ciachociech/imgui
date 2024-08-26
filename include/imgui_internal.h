@@ -74,7 +74,7 @@ Index of this file:
 #endif
 
 // Clang/GCC warnings with -Weverything
-#if defined(__clang__)
+#ifdef __clang__
 #pragma clang diagnostic push
 #if __has_warning("-Wunknown-warning-option")
 #pragma clang diagnostic ignored "-Wunknown-warning-option"         // warning: unknown warning group 'xxx'
@@ -90,7 +90,7 @@ Index of this file:
 #pragma clang diagnostic ignored "-Wmissing-noreturn"               // warning: function 'xxx' could be declared with attribute 'noreturn'
 #pragma clang diagnostic ignored "-Wdeprecated-enum-enum-conversion"// warning: bitwise operation between different enumeration types ('XXXFlags_' and 'XXXFlagsPrivate_') is deprecated
 #pragma clang diagnostic ignored "-Wunsafe-buffer-usage"            // warning: 'xxx' is an unsafe pointer used for buffer access
-#elif defined(__GNUC__)
+#elifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpragmas"              // warning: unknown option after '#pragma GCC diagnostic' kind
 #pragma GCC diagnostic ignored "-Wclass-memaccess"      // [__GNUC__ >= 8] warning: 'memset/memcpy' clearing/writing an object of type 'xxxx' with no trivial copy-assignment; use assignment or value-initialization instead
@@ -301,9 +301,9 @@ namespace ImStb
 // Use 'Metrics/Debugger->Tools->Item Picker' to break into the call-stack of a specific item.
 // This will call IM_DEBUG_BREAK() which you may redefine yourself. See https://github.com/scottt/debugbreak for more reference.
 #ifndef IM_DEBUG_BREAK
-#if defined (_MSC_VER)
+#ifdef _MSC_VER
 #define IM_DEBUG_BREAK()    __debugbreak()
-#elif defined(__clang__)
+#elifdef __clang__
 #define IM_DEBUG_BREAK()    __builtin_debugtrap()
 #elif defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
 #define IM_DEBUG_BREAK()    __asm__ volatile("int3;nop")
@@ -3702,9 +3702,9 @@ extern const char*  ImGuiTestEngine_FindItemDebugLabel(ImGuiContext* ctx, ImGuiI
 
 //-----------------------------------------------------------------------------
 
-#if defined(__clang__)
+#ifdef __clang__
 #pragma clang diagnostic pop
-#elif defined(__GNUC__)
+#elifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
 
