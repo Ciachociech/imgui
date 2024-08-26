@@ -8,6 +8,7 @@ C++23 changes:
 [N?] - deducing this (P0847R7)
 [N] - auto(x)/auto{x} (P0849R8)
 [?] - change scope of lambda trailing-return-type (P2036R3)
+[D] - #elifdef and #elifndef (P2334R1)
 
 Older standards:
 [E] - auto types in for loops
