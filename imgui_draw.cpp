@@ -461,9 +461,11 @@ void ImDrawList::AddDrawCmd()
 // Note that this leaves the ImDrawList in a state unfit for further commands, as most code assume that CmdBuffer.Size > 0 && CmdBuffer.back().UserCallback == NULL
 void ImDrawList::_PopUnusedDrawCmd()
 {
+    [[assume(CmdBuffer.Size > 0)]];
     while (CmdBuffer.Size > 0)
     {
         ImDrawCmd* curr_cmd = &CmdBuffer.Data[CmdBuffer.Size - 1];
+        [[assume(curr_cmd->UserCallback == NULL)]];
         if (curr_cmd->ElemCount != 0 || curr_cmd->UserCallback != NULL)
             return;// break;
         CmdBuffer.pop_back();

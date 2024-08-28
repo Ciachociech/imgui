@@ -12,7 +12,10 @@ C++23 changes:
 [N] - attributes on lambdas (P2173R1)
 [N] - remove non-encodable wide character... (P2362R3)
 [N] - labels at the end of compound statements (P2324R2)
-[] - simpler implicit move (P2266R3)
+[N] - simpler implicit move (P2266R3)
+[N] - static operator()/operator[] (P1169R4, P2589R1)
+[N] - class template argument deduction from inherited constructors (P2582R1)
+[E] - attribute assume (P1774R8)
 
 Older standards:
 [E] - auto types in for loops

@@ -4916,6 +4916,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
                             state->TextW.resize(state->TextW.Size + (callback_data.BufTextLen - backup_current_text_length)); // Worse case scenario resize
                         state->CurLenW = ImTextStrFromUtf8(state->TextW.Data, state->TextW.Size, callback_data.Buf, NULL);
                         state->CurLenA = callback_data.BufTextLen;  // Assume correct length and valid UTF-8 from user, saves us an extra strlen()
+                        [[assume(state->CurLenA > 0)]];
                         state->CursorAnimReset();
                     }
                 }

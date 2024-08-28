@@ -2530,6 +2530,7 @@ void ImGui::TableMergeDrawChannels(ImGuiTable* table)
         if (!IM_BITARRAY_TESTBIT(table->VisibleMaskByIndex, column_n))
             continue;
         ImGuiTableColumn* column = &table->Columns[column_n];
+        [[assume(column != NULL)]];
 
         const int merge_group_sub_count = has_freeze_v ? 2 : 1;
         for (auto merge_group_sub_n = 0; merge_group_sub_n < merge_group_sub_count; merge_group_sub_n++)
