@@ -2460,6 +2460,7 @@ IMGUI_API ImU32 ImAlphaBlendColors(ImU32 col_a, ImU32 col_b)
     int r = ImLerp((int)(col_a >> IM_COL32_R_SHIFT) & 0xFF, (int)(col_b >> IM_COL32_R_SHIFT) & 0xFF, t);
     int g = ImLerp((int)(col_a >> IM_COL32_G_SHIFT) & 0xFF, (int)(col_b >> IM_COL32_G_SHIFT) & 0xFF, t);
     int b = ImLerp((int)(col_a >> IM_COL32_B_SHIFT) & 0xFF, (int)(col_b >> IM_COL32_B_SHIFT) & 0xFF, t);
+    [[assume(r > 0 && r <= 255 && g > 0 && g <= 255 && b > 0 && b <= 255)]];
     return IM_COL32(r, g, b, 0xFF);
 }
 
@@ -2487,6 +2488,7 @@ ImU32 ImGui::ColorConvertFloat4ToU32(const ImVec4& in)
 // Optimized http://lolengine.net/blog/2013/01/13/fast-rgb-to-hsv
 void ImGui::ColorConvertRGBtoHSV(float r, float g, float b, float& out_h, float& out_s, float& out_v)
 {
+    [[assume(r >= 0.f && r <= 1.f && g >= 0.f && g <= 1.f && b >= 0.f && b <= 1.f)]];
     float K = 0.f;
     if (g < b)
     {
@@ -2515,6 +2517,7 @@ void ImGui::ColorConvertHSVtoRGB(float h, float s, float v, float& out_r, float&
         out_r = out_g = out_b = v;
         return;
     }
+    [[assume(h >= 0.f && h <= 1.f && s >= 0.f && s <= 1.f && v >= 0.f && v <= 1.f)]];
 
     h = ImFmod(h, 1.0f) / (60.0f / 360.0f);
     int   i = (int)h;
