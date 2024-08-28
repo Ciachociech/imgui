@@ -6,6 +6,8 @@ project(imgui)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+#set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -ftime-report")
+
 option(IMGUI_USE_DARK_THEME "Use Dark ImGui Spectrum Theme" OFF)
 option(IMGUI_DEFINE_MATH_OPERATORS "Enable ImGui ImVec2/ImVec4 operators" OFF)
 option(IMGUI_BUILD_EXAMPLES "" OFF)
