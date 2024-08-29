@@ -3181,7 +3181,6 @@ ImGuiStyle& ImGui::GetStyle()
 
 ImU32 ImGui::GetColorU32(ImGuiCol idx, float alpha_mul)
 {
-    [[assume(idx >= 0)]];
     ImGuiStyle& style = GImGui->Style;
     ImVec4 c = style.Colors[idx];
     c.w *= style.Alpha * alpha_mul;
@@ -3198,7 +3197,6 @@ ImU32 ImGui::GetColorU32(const ImVec4& col)
 
 const ImVec4& ImGui::GetStyleColorVec4(ImGuiCol idx)
 {
-    [[assume(idx >= 0)]];
     ImGuiStyle& style = GImGui->Style;
     return style.Colors[idx];
 }
@@ -3218,7 +3216,6 @@ ImU32 ImGui::GetColorU32(ImU32 col, float alpha_mul)
 // FIXME: This may incur a round-trip (if the end user got their data from a float4) but eventually we aim to store the in-flight colors as ImU32
 void ImGui::PushStyleColor(ImGuiCol idx, ImU32 col)
 {
-    [[assume(idx >= 0)]];
     ImGuiContext& g = *GImGui;
     ImGuiColorMod backup;
     backup.Col = idx;
@@ -3230,7 +3227,6 @@ void ImGui::PushStyleColor(ImGuiCol idx, ImU32 col)
 
 void ImGui::PushStyleColor(ImGuiCol idx, const ImVec4& col)
 {
-    [[assume(idx >= 0)]];
     ImGuiContext& g = *GImGui;
     ImGuiColorMod backup;
     backup.Col = idx;
@@ -3304,7 +3300,6 @@ const ImGuiDataVarInfo* ImGui::GetStyleVarInfo(ImGuiStyleVar idx)
 
 void ImGui::PushStyleVar(ImGuiStyleVar idx, float val)
 {
-    [[assume(idx >= 0)]];
     ImGuiContext& g = *GImGui;
     const ImGuiDataVarInfo* var_info = GetStyleVarInfo(idx);
     if (var_info->Type == ImGuiDataType_Float && var_info->Count == 1)
@@ -3319,7 +3314,6 @@ void ImGui::PushStyleVar(ImGuiStyleVar idx, float val)
 
 void ImGui::PushStyleVar(ImGuiStyleVar idx, const ImVec2& val)
 {
-    [[assume(idx >= 0)]];
     ImGuiContext& g = *GImGui;
     const ImGuiDataVarInfo* var_info = GetStyleVarInfo(idx);
     if (var_info->Type == ImGuiDataType_Float && var_info->Count == 2)
@@ -3357,7 +3351,6 @@ void ImGui::PopStyleVar(int count)
 const char* ImGui::GetStyleColorName(ImGuiCol idx)
 {
     // Create switch-case from enum with regexp: ImGuiCol_{.*}, --> case ImGuiCol_\1: return "\1";
-    [[assume(idx >= 0)]];
     switch (idx)
     {
     case ImGuiCol_Text: return "Text";
@@ -4461,7 +4454,6 @@ static ImDrawList* GetViewportBgFgDrawList(ImGuiViewportP* viewport, size_t draw
     // Create the draw list on demand, because they are not frequently used for all viewports
     ImGuiContext& g = *GImGui;
     IM_ASSERT(drawlist_no < IM_ARRAYSIZE(viewport->BgFgDrawLists));
-    [[assume(drawlist_no > 0)]];
     ImDrawList* draw_list = viewport->BgFgDrawLists[drawlist_no];
     if (draw_list == NULL)
     {
