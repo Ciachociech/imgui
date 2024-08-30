@@ -370,7 +370,7 @@ void ImGui::StyleColorsLight(ImGuiStyle* dst)
 ImDrawListSharedData::ImDrawListSharedData()
 {
     memset(this, 0, sizeof(*this));
-    for (int i = 0; i < IM_ARRAYSIZE(ArcFastVtx); i++)
+    for (auto i = 0; i < IM_ARRAYSIZE(ArcFastVtx); i++)
     {
         const float a = ((float)i * 2 * IM_PI) / (float)IM_ARRAYSIZE(ArcFastVtx);
         ArcFastVtx[i] = ImVec2(ImCos(a), ImSin(a));
@@ -464,7 +464,6 @@ void ImDrawList::_PopUnusedDrawCmd()
     while (CmdBuffer.Size > 0)
     {
         ImDrawCmd* curr_cmd = &CmdBuffer.Data[CmdBuffer.Size - 1];
-        [[assume(curr_cmd->UserCallback == NULL)]];
         if (curr_cmd->ElemCount != 0 || curr_cmd->UserCallback != NULL)
             return;// break;
         CmdBuffer.pop_back();
@@ -762,6 +761,7 @@ void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, ImU32
         for (auto i1 = 0; i1 < count; i1++)
         {
             const int i2 = (i1 + 1) == points_count ? 0 : i1 + 1;
+            [[assume(i2 >= 0)]];
             float dx = points[i2].x - points[i1].x;
             float dy = points[i2].y - points[i1].y;
             IM_NORMALIZE2F_OVER_ZERO(dx, dy);
@@ -800,6 +800,7 @@ void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, ImU32
             for (auto i1 = 0; i1 < count; i1++) // i1 is the first point of the line segment
             {
                 const int i2 = (i1 + 1) == points_count ? 0 : i1 + 1; // i2 is the second point of the line segment
+                [[assume(i2 >= 0)]];
                 const unsigned int idx2 = ((i1 + 1) == points_count) ? _VtxCurrentIdx : (idx1 + (use_texture ? 2 : 3)); // Vertex index for end of segment
 
                 // Average normals
@@ -896,6 +897,7 @@ void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, ImU32
             for (auto i1 = 0; i1 < count; i1++) // i1 is the first point of the line segment
             {
                 const int i2 = (i1 + 1) == points_count ? 0 : (i1 + 1); // i2 is the second point of the line segment
+                [[assume(i2 >= 0)]];
                 const unsigned int idx2 = (i1 + 1) == points_count ? _VtxCurrentIdx : (idx1 + 4); // Vertex index for end of segment
 
                 // Average normals
@@ -949,9 +951,10 @@ void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, ImU32
         const int vtx_count = count * 4;    // FIXME-OPT: Not sharing edges
         PrimReserve(idx_count, vtx_count);
 
-        for (int i1 = 0; i1 < count; i1++)
+        for (auto i1 = 0; i1 < count; i1++)
         {
             const int i2 = (i1 + 1) == points_count ? 0 : i1 + 1;
+            [[assume(i2 >= 0)]];
             const ImVec2& p1 = points[i1];
             const ImVec2& p2 = points[i2];
 
@@ -979,6 +982,7 @@ void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, ImU32
 // - Filled shapes must always use clockwise winding order. The anti-aliasing fringe depends on it. Counter-clockwise shapes will have "inward" anti-aliasing.
 void ImDrawList::AddConvexPolyFilled(const ImVec2* points, const int points_count, ImU32 col)
 {
+    [[assume(points_count > 0)]];
     if (points_count < 3 || (col & IM_COL32_A_MASK) == 0)
         return;
 
@@ -991,6 +995,7 @@ void ImDrawList::AddConvexPolyFilled(const ImVec2* points, const int points_coun
         const ImU32 col_trans = col & ~IM_COL32_A_MASK;
         const int idx_count = (points_count - 2)*3 + points_count * 6;
         const int vtx_count = (points_count * 2);
+        [[assume(idx_count >= 0 && vtx_count >= 0)]];
         PrimReserve(idx_count, vtx_count);
 
         // Add indexes for fill
@@ -1044,6 +1049,7 @@ void ImDrawList::AddConvexPolyFilled(const ImVec2* points, const int points_coun
         // Non Anti-aliased Fill
         const int idx_count = (points_count - 2)*3;
         const int vtx_count = points_count;
+        [[assume(idx_count >= 0 && vtx_count >= 0)]];
         PrimReserve(idx_count, vtx_count);
         for (auto i = 0; i < vtx_count; i++)
         {
@@ -1075,14 +1081,17 @@ void ImDrawList::_PathArcToFastEx(const ImVec2& center, float radius, int a_min_
     a_step = ImClamp(a_step, 1, IM_DRAWLIST_ARCFAST_TABLE_SIZE / 4);
 
     const int sample_range = ImAbs(a_max_sample - a_min_sample);
+    [[assume(sample_range >= 0)]];
     const int a_next_step = a_step;
 
     int samples = sample_range + 1;
+    [[assume(samples > 0)]];
     bool extra_max_sample = false;
     if (a_step > 1)
     {
         samples            = sample_range / a_step + 1;
         const int overstep = sample_range % a_step;
+        [[assume(overstep >= 0)]];
 
         if (overstep > 0)
         {
@@ -1162,7 +1171,7 @@ void ImDrawList::_PathArcToN(const ImVec2& center, float radius, float a_min, fl
     // Note that we are adding a point at both a_min and a_max.
     // If you are trying to draw a full closed circle you don't want the overlapping points!
     _Path.reserve(_Path.Size + (num_segments + 1));
-    for (int i = 0; i <= num_segments; i++)
+    for (auto i = 0; i <= num_segments; i++)
     {
         const float a = a_min + ((float)i / (float)num_segments) * (a_max - a_min);
         _Path.push_back(ImVec2(center.x + ImCos(a) * radius, center.y + ImSin(a) * radius));
@@ -1836,7 +1845,7 @@ void ImTriangulator::GetNextTriangle(unsigned int out_triangle[3])
         FlipNodeList();
 
         ImTriangulatorNode* node = _Nodes;
-        for (int i = _TrianglesLeft; i >= 0; i--, node = node->Next)
+        for (auto i = _TrianglesLeft; i >= 0; i--, node = node->Next)
             node->Type = ImTriangulatorNodeType_Convex;
         _Reflexes.Size = 0;
         BuildReflexes();
@@ -1936,6 +1945,7 @@ void ImTriangulator::ReclassifyNode(ImTriangulatorNode* n1)
 // Caller can build AABB of points, and avoid filling if 'draw_list->_CmdHeader.ClipRect.Overlays(points_bb) == false')
 void ImDrawList::AddConcavePolyFilled(const ImVec2* points, const int points_count, ImU32 col)
 {
+    [[assume(points_count > 0)]];
     if (points_count < 3 || (col & IM_COL32_A_MASK) == 0)
         return;
 
@@ -1949,6 +1959,7 @@ void ImDrawList::AddConcavePolyFilled(const ImVec2* points, const int points_cou
         const ImU32 col_trans = col & ~IM_COL32_A_MASK;
         const int idx_count = (points_count - 2) * 3 + points_count * 6;
         const int vtx_count = (points_count * 2);
+        [[assume(idx_count >= 0 && vtx_count >= 0)]];
         PrimReserve(idx_count, vtx_count);
 
         // Add indexes for fill
@@ -2006,6 +2017,7 @@ void ImDrawList::AddConcavePolyFilled(const ImVec2* points, const int points_cou
         // Non Anti-aliased Fill
         const int idx_count = (points_count - 2) * 3;
         const int vtx_count = points_count;
+        [[assume(idx_count >= 0 && vtx_count >= 0)]];
         PrimReserve(idx_count, vtx_count);
         for (auto i = 0; i < vtx_count; i++)
         {
@@ -2060,7 +2072,7 @@ void ImDrawListSplitter::Split(ImDrawList* draw_list, int channels_count)
     // The content of Channels[0] at this point doesn't matter. We clear it to make state tidy in a debugger but we don't strictly need to.
     // When we switch to the next channel, we'll copy draw_list->_CmdBuffer/_IdxBuffer into Channels[0] and then Channels[1] into draw_list->CmdBuffer/_IdxBuffer
     memset(&_Channels[0], 0, sizeof(ImDrawChannel));
-    for (int i = 1; i < channels_count; i++)
+    for (auto i = 1; i < channels_count; i++)
     {
         if (i >= old_channels_count)
         {
@@ -2709,7 +2721,7 @@ bool    ImFontAtlas::Build()
 
 void    ImFontAtlasBuildMultiplyCalcLookupTable(unsigned char out_table[256], float in_brighten_factor)
 {
-    for (unsigned int i = 0; i < 256; i++)
+    for (auto i = 0; i < 256; i++)
     {
         unsigned int value = (unsigned int)(i * in_brighten_factor);
         out_table[i] = value > 255 ? 255 : (value & 0xFF);
@@ -2720,8 +2732,8 @@ void    ImFontAtlasBuildMultiplyRectAlpha8(const unsigned char table[256], unsig
 {
     IM_ASSERT_PARANOID(w <= stride);
     unsigned char* data = pixels + x + y * stride;
-    for (int j = h; j > 0; j--, data += stride - w)
-        for (int i = w; i > 0; i--, data++)
+    for (auto j = h; j > 0; j--, data += stride - w)
+        for (auto i = w; i > 0; i--, data++)
             *data = table[*data];
 }
 
@@ -2877,7 +2889,7 @@ static bool ImFontAtlasBuildWithStbTruetype(ImFontAtlas* atlas)
     int total_surface = 0;
     int buf_rects_out_n = 0;
     int buf_packedchars_out_n = 0;
-    for (int src_i = 0; src_i < src_tmp_array.Size; src_i++)
+    for (auto src_i = 0; src_i < src_tmp_array.Size; src_i++)
     {
         ImFontBuildSrcData& src_tmp = src_tmp_array[src_i];
         if (src_tmp.GlyphsCount == 0)
@@ -3118,6 +3130,7 @@ static void ImFontAtlasBuildRenderDefaultTexData(ImFontAtlas* atlas)
     IM_ASSERT(r->IsPacked());
 
     const int w = atlas->TexWidth;
+    [[assume(w >= 0)]];
     if (!(atlas->Flags & ImFontAtlasFlags_NoMouseCursors))
     {
         // Render/copy pixels
@@ -3837,6 +3850,7 @@ const char* ImFont::CalcWordWrapPositionA(float scale, const char* text, const c
     float line_width = 0.0f;
     float word_width = 0.0f;
     float blank_width = 0.0f;
+    [[assume(scale != 0.0f)]];
     wrap_width /= scale; // We work with unscaled widths to avoid scaling every characters
 
     const char* word_end = text;
@@ -4218,6 +4232,7 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, const ImVec2& pos, Im
 void ImGui::RenderArrow(ImDrawList* draw_list, ImVec2 pos, ImU32 col, ImGuiDir dir, float scale)
 {
     const float h = draw_list->_Data->FontSize * 1.00f;
+    [[assume(h >= 0.f)]];
     float r = h * 0.40f * scale;
     ImVec2 center = pos + ImVec2(h * 0.50f, h * 0.50f * scale);
 
