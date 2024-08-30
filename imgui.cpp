@@ -2460,6 +2460,7 @@ IMGUI_API ImU32 ImAlphaBlendColors(ImU32 col_a, ImU32 col_b)
     int r = ImLerp((int)(col_a >> IM_COL32_R_SHIFT) & 0xFF, (int)(col_b >> IM_COL32_R_SHIFT) & 0xFF, t);
     int g = ImLerp((int)(col_a >> IM_COL32_G_SHIFT) & 0xFF, (int)(col_b >> IM_COL32_G_SHIFT) & 0xFF, t);
     int b = ImLerp((int)(col_a >> IM_COL32_B_SHIFT) & 0xFF, (int)(col_b >> IM_COL32_B_SHIFT) & 0xFF, t);
+    [[assume(r > 0 && r <= 255 && g > 0 && g <= 255 && b > 0 && b <= 255)]];
     return IM_COL32(r, g, b, 0xFF);
 }
 
@@ -2487,6 +2488,7 @@ ImU32 ImGui::ColorConvertFloat4ToU32(const ImVec4& in)
 // Optimized http://lolengine.net/blog/2013/01/13/fast-rgb-to-hsv
 void ImGui::ColorConvertRGBtoHSV(float r, float g, float b, float& out_h, float& out_s, float& out_v)
 {
+    [[assume(r >= 0.f && r <= 1.f && g >= 0.f && g <= 1.f && b >= 0.f && b <= 1.f)]];
     float K = 0.f;
     if (g < b)
     {
@@ -2515,6 +2517,7 @@ void ImGui::ColorConvertHSVtoRGB(float h, float s, float v, float& out_r, float&
         out_r = out_g = out_b = v;
         return;
     }
+    [[assume(h >= 0.f && h <= 1.f && s >= 0.f && s <= 1.f && v >= 0.f && v <= 1.f)]];
 
     h = ImFmod(h, 1.0f) / (60.0f / 360.0f);
     int   i = (int)h;
@@ -3200,6 +3203,7 @@ const ImVec4& ImGui::GetStyleColorVec4(ImGuiCol idx)
 
 ImU32 ImGui::GetColorU32(ImU32 col, float alpha_mul)
 {
+    [[assume(alpha_mul >= 0.0f)]];
     ImGuiStyle& style = GImGui->Style;
     alpha_mul *= style.Alpha;
     if (alpha_mul >= 1.0f)
@@ -3234,6 +3238,7 @@ void ImGui::PushStyleColor(ImGuiCol idx, const ImVec4& col)
 
 void ImGui::PopStyleColor(int count)
 {
+    [[assume(count >= 0)]];
     ImGuiContext& g = *GImGui;
     if (g.ColorStack.Size < count)
     {
@@ -3323,6 +3328,7 @@ void ImGui::PushStyleVar(ImGuiStyleVar idx, const ImVec2& val)
 
 void ImGui::PopStyleVar(int count)
 {
+    [[assume(count >= 0)]];
     ImGuiContext& g = *GImGui;
     if (g.StyleVarStack.Size < count)
     {
@@ -4200,6 +4206,7 @@ bool ImGui::IsItemHovered(ImGuiHoveredFlags flags)
     // Handle hover delay
     // (some ideas: https://www.nngroup.com/articles/timing-exposing-content)
     const float delay = CalcDelayFromHoveredFlags(flags);
+    [[assume(delay > 0.0f)]];
     if (delay > 0.0f || (flags & ImGuiHoveredFlags_Stationary))
     {
         ImGuiID hover_delay_id = (g.LastItemData.ID != 0) ? g.LastItemData.ID : window->GetIDFromRectangle(g.LastItemData.Rect);
@@ -8587,6 +8594,7 @@ const char* ImGui::GetKeyChordName(ImGuiKeyChord key_chord)
 //  t = 0.0f     t = repeat_delay,    t = repeat_delay + repeat_rate*N
 int ImGui::CalcTypematicRepeatAmount(float t0, float t1, float repeat_delay, float repeat_rate)
 {
+    [[assume(t0 >= 0.0f && t1 >= 0.0f)]];
     if (t1 == 0.0f)
         return 1;
     if (t0 >= t1)
@@ -8853,6 +8861,7 @@ bool ImGui::SetShortcutRouting(ImGuiKeyChord key_chord, ImGuiInputFlags flags, I
         focus_scope_id = g.CurrentWindow->RootWindow->ID; // See PushFocusScope() call in Begin()
 
     const int score = CalcRoutingScore(focus_scope_id, owner_id, flags);
+    [[assume(score < 256)]];
     IMGUI_DEBUG_LOG_INPUTROUTING("SetShortcutRouting(%s, flags=%04X, owner_id=0x%08X) -> score %d\n", GetKeyChordName(key_chord), flags, owner_id, score);
     if (score == 255)
         return false;
@@ -9640,6 +9649,7 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
             IM_ASSERT(key != ImGuiKey_None);
             ImGuiKeyData* key_data = GetKeyData(key);
             const int key_data_index = (int)(key_data - g.IO.KeysData);
+            [[assume(key_data_index >= 0)]];
             if (trickle_fast_inputs && key_data->Down != e->Key.Down && (key_changed_mask.TestBit(key_data_index) || text_inputted || mouse_button_changed != 0))
                 break;
             key_data->Down = e->Key.Down;
@@ -12955,6 +12965,7 @@ static int ImGui::FindWindowFocusIndex(ImGuiWindow* window)
     ImGuiContext& g = *GImGui;
     IM_UNUSED(g);
     int order = window->FocusOrder;
+    [[assume(order >= 0)]];
     IM_ASSERT(window->RootWindow == window); // No child window (not testing _ChildWindow because of docking)
     IM_ASSERT(g.WindowsFocusOrder[order] == window);
     return order;
@@ -12963,7 +12974,8 @@ static int ImGui::FindWindowFocusIndex(ImGuiWindow* window)
 static ImGuiWindow* FindWindowNavFocusable(int i_start, int i_stop, int dir) // FIXME-OPT O(N)
 {
     ImGuiContext& g = *GImGui;
-    for (int i = i_start; i >= 0 && i < g.WindowsFocusOrder.Size && i != i_stop; i += dir)
+    [[assume(i_start >= 0 && i_stop >= 0)]];
+    for (auto i = i_start; i >= 0 && i < g.WindowsFocusOrder.Size && i != i_stop; i += dir)
         if (ImGui::IsWindowNavFocusable(g.WindowsFocusOrder[i]))
             return g.WindowsFocusOrder[i];
     return NULL;
@@ -14965,7 +14977,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
     // Details for TabBars
     if (TreeNode("TabBars", "Tab Bars (%d)", g.TabBars.GetAliveCount()))
     {
-        for (int n = 0; n < g.TabBars.GetMapSize(); n++)
+        for (auto n = 0; n < g.TabBars.GetMapSize(); n++)
             if (ImGuiTabBar* tab_bar = g.TabBars.TryGetMapData(n))
             {
                 PushID(tab_bar);
@@ -14978,7 +14990,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
     // Details for Tables
     if (TreeNode("Tables", "Tables (%d)", g.Tables.GetAliveCount()))
     {
-        for (int n = 0; n < g.Tables.GetMapSize(); n++)
+        for (auto n = 0; n < g.Tables.GetMapSize(); n++)
             if (ImGuiTable* table = g.Tables.TryGetMapData(n))
                 DebugNodeTable(table);
         TreePop();
@@ -15011,7 +15023,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
     {
         ImGuiBoxSelectState* bs = &g.BoxSelectState;
         BulletText("BoxSelect ID=0x%08X, Starting = %d, Active %d", bs->ID, bs->IsStarting, bs->IsActive);
-        for (int n = 0; n < g.MultiSelectStorage.GetMapSize(); n++)
+        for (auto n = 0; n < g.MultiSelectStorage.GetMapSize(); n++)
             if (ImGuiMultiSelectState* state = g.MultiSelectStorage.TryGetMapData(n))
                 DebugNodeMultiSelectState(state);
         TreePop();
@@ -15082,7 +15094,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
         if (SmallButton("GC now")) { g.GcCompactAll = true; }
         Text("Recent frames with allocations:");
         int buf_size = IM_ARRAYSIZE(info->LastEntriesBuf);
-        for (int n = buf_size - 1; n >= 0; n--)
+        for (auto n = buf_size - 1; n >= 0; n--)
         {
             ImGuiDebugAllocEntry* entry = &info->LastEntriesBuf[(info->LastEntriesIdx - n + buf_size) % buf_size];
             BulletText("Frame %06d: %+3d ( %2d malloc, %2d free )%s", entry->FrameCount, entry->AllocCount - entry->FreeCount, entry->AllocCount, entry->FreeCount, (n == 0) ? " (most recent)" : "");
@@ -15107,7 +15119,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
             Text("Keys pressed:");      for (ImGuiKey key = ImGuiKey_KeysData_OFFSET; key < ImGuiKey_COUNT; key = (ImGuiKey)(key + 1)) { if (funcs::IsLegacyNativeDupe(key) || !IsKeyPressed(key)) continue;  SameLine(); Text(IsNamedKey(key) ? "\"%s\"" : "\"%s\" %d", GetKeyName(key), key); }
             Text("Keys released:");     for (ImGuiKey key = ImGuiKey_KeysData_OFFSET; key < ImGuiKey_COUNT; key = (ImGuiKey)(key + 1)) { if (funcs::IsLegacyNativeDupe(key) || !IsKeyReleased(key)) continue; SameLine(); Text(IsNamedKey(key) ? "\"%s\"" : "\"%s\" %d", GetKeyName(key), key); }
             Text("Keys mods: %s%s%s%s", io.KeyCtrl ? "CTRL " : "", io.KeyShift ? "SHIFT " : "", io.KeyAlt ? "ALT " : "", io.KeySuper ? "SUPER " : "");
-            Text("Chars queue:");       for (int i = 0; i < io.InputQueueCharacters.Size; i++) { ImWchar c = io.InputQueueCharacters[i]; SameLine(); Text("\'%c\' (0x%04X)", (c > ' ' && c <= 255) ? (char)c : '?', c); } // FIXME: We should convert 'c' to UTF-8 here but the functions are not public.
+            Text("Chars queue:");       for (auto i = 0; i < io.InputQueueCharacters.Size; i++) { ImWchar c = io.InputQueueCharacters[i]; SameLine(); Text("\'%c\' (0x%04X)", (c > ' ' && c <= 255) ? (char)c : '?', c); } // FIXME: We should convert 'c' to UTF-8 here but the functions are not public.
             DebugRenderKeyboardPreview(GetWindowDrawList());
             Unindent();
         }
@@ -15121,9 +15133,9 @@ void ImGui::ShowMetricsWindow(bool* p_open)
                 Text("Mouse pos: <INVALID>");
             Text("Mouse delta: (%g, %g)", io.MouseDelta.x, io.MouseDelta.y);
             int count = IM_ARRAYSIZE(io.MouseDown);
-            Text("Mouse down:");     for (int i = 0; i < count; i++) if (IsMouseDown(i)) { SameLine(); Text("b%d (%.02f secs)", i, io.MouseDownDuration[i]); }
-            Text("Mouse clicked:");  for (int i = 0; i < count; i++) if (IsMouseClicked(i)) { SameLine(); Text("b%d (%d)", i, io.MouseClickedCount[i]); }
-            Text("Mouse released:"); for (int i = 0; i < count; i++) if (IsMouseReleased(i)) { SameLine(); Text("b%d", i); }
+            Text("Mouse down:");     for (auto i = 0; i < count; i++) if (IsMouseDown(i)) { SameLine(); Text("b%d (%.02f secs)", i, io.MouseDownDuration[i]); }
+            Text("Mouse clicked:");  for (auto i = 0; i < count; i++) if (IsMouseClicked(i)) { SameLine(); Text("b%d (%d)", i, io.MouseClickedCount[i]); }
+            Text("Mouse released:"); for (auto i = 0; i < count; i++) if (IsMouseReleased(i)) { SameLine(); Text("b%d", i); }
             Text("Mouse wheel: %.1f", io.MouseWheel);
             Text("MouseStationaryTimer: %.2f", g.MouseStationaryTimer);
             Text("Mouse source: %s", GetMouseSourceName(io.MouseSource));
@@ -15222,7 +15234,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
         Text("NavDisableHighlight: %d, NavDisableMouseHover: %d", g.NavDisableHighlight, g.NavDisableMouseHover);
         Text("NavFocusScopeId = 0x%08X", g.NavFocusScopeId);
         Text("NavFocusRoute[] = ");
-        for (int path_n = g.NavFocusRoute.Size - 1; path_n >= 0; path_n--)
+        for (auto path_n = g.NavFocusRoute.Size - 1; path_n >= 0; path_n--)
         {
             const ImGuiFocusScopeData& focus_scope = g.NavFocusRoute[path_n];
             SameLine(0.0f, 0.0f);
@@ -15262,7 +15274,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
     // Overlay: Display Tables Rectangles
     if (cfg->ShowTablesRects)
     {
-        for (int table_n = 0; table_n < g.Tables.GetMapSize(); table_n++)
+        for (auto table_n = 0; table_n < g.Tables.GetMapSize(); table_n++)
         {
             ImGuiTable* table = g.Tables.TryGetMapData(table_n);
             if (table == NULL || table->LastFrameActive < g.FrameCount - 1)
@@ -15270,7 +15282,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
             ImDrawList* draw_list = GetForegroundDrawList(table->OuterWindow);
             if (cfg->ShowTablesRectsType >= TRT_ColumnsRect)
             {
-                for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
+                for (auto column_n = 0; column_n < table->ColumnsCount; column_n++)
                 {
                     ImRect r = Funcs::GetTableRect(table, cfg->ShowTablesRectsType, column_n);
                     ImU32 col = (table->HoveredColumnBody == column_n) ? IM_COL32(255, 255, 128, 255) : IM_COL32(255, 0, 128, 255);
@@ -15427,10 +15439,10 @@ void ImGui::DebugNodeDrawList(ImGuiWindow* window, ImGuiViewportP* viewport, con
         const ImDrawIdx* idx_buffer = (draw_list->IdxBuffer.Size > 0) ? draw_list->IdxBuffer.Data : NULL;
         const ImDrawVert* vtx_buffer = draw_list->VtxBuffer.Data + pcmd->VtxOffset;
         float total_area = 0.0f;
-        for (unsigned int idx_n = pcmd->IdxOffset; idx_n < pcmd->IdxOffset + pcmd->ElemCount; )
+        for (auto idx_n = pcmd->IdxOffset; idx_n < pcmd->IdxOffset + pcmd->ElemCount; )
         {
             ImVec2 triangle[3];
-            for (int n = 0; n < 3; n++, idx_n++)
+            for (auto n = 0; n < 3; n++, idx_n++)
                 triangle[n] = vtx_buffer[idx_buffer ? idx_buffer[idx_n] : idx_n].pos;
             total_area += ImTriangleArea(triangle[0], triangle[1], triangle[2]);
         }
@@ -15449,7 +15461,7 @@ void ImGui::DebugNodeDrawList(ImGuiWindow* window, ImGuiViewportP* viewport, con
             {
                 char* buf_p = buf, * buf_end = buf + IM_ARRAYSIZE(buf);
                 ImVec2 triangle[3];
-                for (int n = 0; n < 3; n++, idx_i++)
+                for (auto n = 0; n < 3; n++, idx_i++)
                 {
                     const ImDrawVert& v = vtx_buffer[idx_buffer ? idx_buffer[idx_i] : idx_i];
                     triangle[n] = v.pos;
@@ -15481,13 +15493,13 @@ void ImGui::DebugNodeDrawCmdShowMeshAndBoundingBox(ImDrawList* out_draw_list, co
     ImRect vtxs_rect(FLT_MAX, FLT_MAX, -FLT_MAX, -FLT_MAX);
     ImDrawListFlags backup_flags = out_draw_list->Flags;
     out_draw_list->Flags &= ~ImDrawListFlags_AntiAliasedLines; // Disable AA on triangle outlines is more readable for very large and thin triangles.
-    for (unsigned int idx_n = draw_cmd->IdxOffset, idx_end = draw_cmd->IdxOffset + draw_cmd->ElemCount; idx_n < idx_end; )
+    for (auto idx_n = draw_cmd->IdxOffset, idx_end = draw_cmd->IdxOffset + draw_cmd->ElemCount; idx_n < idx_end; )
     {
         ImDrawIdx* idx_buffer = (draw_list->IdxBuffer.Size > 0) ? draw_list->IdxBuffer.Data : NULL; // We don't hold on those pointers past iterations as ->AddPolyline() may invalidate them if out_draw_list==draw_list
         ImDrawVert* vtx_buffer = draw_list->VtxBuffer.Data + draw_cmd->VtxOffset;
 
         ImVec2 triangle[3];
-        for (int n = 0; n < 3; n++, idx_n++)
+        for (auto n = 0; n < 3; n++, idx_n++)
             vtxs_rect.Add((triangle[n] = vtx_buffer[idx_buffer ? idx_buffer[idx_n] : idx_n].pos));
         if (show_mesh)
             out_draw_list->AddPolyline(triangle, 3, IM_COL32(255, 255, 0, 255), ImDrawFlags_Closed, 1.0f); // In yellow: mesh triangles
@@ -15532,7 +15544,7 @@ void ImGui::DebugNodeFont(ImFont* font)
     Text("Ellipsis character: '%s' (U+%04X)", ImTextCharToUtf8(c_str, font->EllipsisChar), font->EllipsisChar);
     const int surface_sqrt = (int)ImSqrt((float)font->MetricsTotalSurface);
     Text("Texture Area: about %d px ~%dx%d px", font->MetricsTotalSurface, surface_sqrt, surface_sqrt);
-    for (int config_i = 0; config_i < font->ConfigDataCount; config_i++)
+    for (auto config_i = 0; config_i < font->ConfigDataCount; config_i++)
         if (font->ConfigData)
             if (const ImFontConfig* cfg = &font->ConfigData[config_i])
                 BulletText("Input %d: \'%s\', Oversample: (%d,%d), PixelSnapH: %d, Offset: (%.1f,%.1f)",
@@ -15545,7 +15557,7 @@ void ImGui::DebugNodeFont(ImFont* font)
         const ImU32 glyph_col = GetColorU32(ImGuiCol_Text);
         const float cell_size = font->FontSize * 1;
         const float cell_spacing = GetStyle().ItemSpacing.y;
-        for (unsigned int base = 0; base <= IM_UNICODE_CODEPOINT_MAX; base += 256)
+        for (auto base = 0; base <= IM_UNICODE_CODEPOINT_MAX; base += 256)
         {
             // Skip ahead if a large bunch of glyphs are not present in the font (test in chunks of 4k)
             // This is only a small optimization to reduce the number of iterations when IM_UNICODE_MAX_CODEPOINT
@@ -15556,18 +15568,18 @@ void ImGui::DebugNodeFont(ImFont* font)
                 continue;
             }
 
-            int count = 0;
-            for (unsigned int n = 0; n < 256; n++)
+            unsigned short count = 0;
+            for (auto n = 0; n < 256; n++)
                 if (font->FindGlyphNoFallback((ImWchar)(base + n)))
                     count++;
-            if (count <= 0)
+            if (count == 0)
                 continue;
             if (!TreeNode((void*)(intptr_t)base, "U+%04X..U+%04X (%d %s)", base, base + 255, count, count > 1 ? "glyphs" : "glyph"))
                 continue;
 
             // Draw a 16x16 grid of glyphs
             ImVec2 base_pos = GetCursorScreenPos();
-            for (unsigned int n = 0; n < 256; n++)
+            for (auto n = 0; n < 256; n++)
             {
                 // We use ImFont::RenderChar as a shortcut because we don't have UTF-8 conversion functions
                 // available here and thus cannot easily generate a zero-terminated UTF-8 encoded string.
@@ -15642,7 +15654,7 @@ void ImGui::DebugNodeTabBar(ImGuiTabBar* tab_bar, const char* label)
     }
     if (open)
     {
-        for (int tab_n = 0; tab_n < tab_bar->Tabs.Size; tab_n++)
+        for (auto tab_n = 0; tab_n < tab_bar->Tabs.Size; tab_n++)
         {
             ImGuiTabItem* tab = &tab_bar->Tabs[tab_n];
             PushID(tab);
@@ -15720,7 +15732,7 @@ void ImGui::DebugNodeWindow(ImGuiWindow* window, const char* label)
     BulletText("Scroll: (%.2f/%.2f,%.2f/%.2f) Scrollbar:%s%s", window->Scroll.x, window->ScrollMax.x, window->Scroll.y, window->ScrollMax.y, window->ScrollbarX ? "X" : "", window->ScrollbarY ? "Y" : "");
     BulletText("Active: %d/%d, WriteAccessed: %d, BeginOrderWithinContext: %d", window->Active, window->WasActive, window->WriteAccessed, (window->Active || window->WasActive) ? window->BeginOrderWithinContext : -1);
     BulletText("Appearing: %d, Hidden: %d (CanSkip %d Cannot %d), SkipItems: %d", window->Appearing, window->Hidden, window->HiddenFramesCanSkipItems, window->HiddenFramesCannotSkipItems, window->SkipItems);
-    for (int layer = 0; layer < ImGuiNavLayer_COUNT; layer++)
+    for (auto layer = 0; layer < ImGuiNavLayer_COUNT; layer++)
     {
         ImRect r = window->NavRectRel[layer];
         if (r.Min.x >= r.Max.y && r.Min.y >= r.Max.y)
@@ -15730,7 +15742,7 @@ void ImGui::DebugNodeWindow(ImGuiWindow* window, const char* label)
         DebugLocateItemOnHover(window->NavLastIds[layer]);
     }
     const ImVec2* pr = window->NavPreferredScoringPosRel;
-    for (int layer = 0; layer < ImGuiNavLayer_COUNT; layer++)
+    for (auto layer = 0; layer < ImGuiNavLayer_COUNT; layer++)
         BulletText("NavPreferredScoringPosRel[%d] = {%.1f,%.1f)", layer, (pr[layer].x == FLT_MAX ? -99999.0f : pr[layer].x), (pr[layer].y == FLT_MAX ? -99999.0f : pr[layer].y)); // Display as 99999.0f so it looks neater.
     BulletText("NavLayersActiveMask: %X, NavLastChildNavWindow: %s", window->DC.NavLayersActiveMask, window->NavLastChildNavWindow ? window->NavLastChildNavWindow->Name : "NULL");
     if (window->RootWindow != window)               { DebugNodeWindow(window->RootWindow, "RootWindow"); }
@@ -15761,7 +15773,7 @@ void ImGui::DebugNodeWindowsList(ImVector<ImGuiWindow*>* windows, const char* la
 {
     if (!TreeNode(label, "%s (%d)", label, windows->Size))
         return;
-    for (int i = windows->Size - 1; i >= 0; i--) // Iterate front to back
+    for (auto i = windows->Size - 1; i >= 0; i--) // Iterate front to back
     {
         PushID((*windows)[i]);
         DebugNodeWindow((*windows)[i], "Window");
@@ -15773,7 +15785,7 @@ void ImGui::DebugNodeWindowsList(ImVector<ImGuiWindow*>* windows, const char* la
 // FIXME-OPT: This is technically suboptimal, but it is simpler this way.
 void ImGui::DebugNodeWindowsListByBeginStackParent(ImGuiWindow** windows, int windows_size, ImGuiWindow* parent_in_begin_stack)
 {
-    for (int i = 0; i < windows_size; i++)
+    for (auto i = 0; i < windows_size; i++)
     {
         ImGuiWindow* window = windows[i];
         if (window->ParentWindowInBeginStack != parent_in_begin_stack)
@@ -15804,6 +15816,7 @@ void ImGui::DebugLogV(const char* fmt, va_list args)
 {
     ImGuiContext& g = *GImGui;
     const int old_size = g.DebugLogBuf.size();
+    [[assume(old_size >= 0)]];
     if (g.ContextName[0] != 0)
         g.DebugLogBuf.appendf("[%s] [%05d] ", g.ContextName, g.FrameCount);
     else
@@ -16108,7 +16121,7 @@ void ImGui::DebugHookIdInfo(ImGuiID id, ImGuiDataType data_type, const void* dat
     {
         tool->StackLevel++;
         tool->Results.resize(window->IDStack.Size + 1, ImGuiStackLevelInfo());
-        for (int n = 0; n < window->IDStack.Size + 1; n++)
+        for (auto n = 0; n < window->IDStack.Size + 1; n++)
             tool->Results[n].ID = (n < window->IDStack.Size) ? window->IDStack[n] : id;
         return;
     }
@@ -16194,12 +16207,12 @@ void ImGui::ShowIDStackToolWindow(bool* p_open)
         tool->CopyToClipboardLastTime = (float)g.Time;
         char* p = g.TempBuffer.Data;
         char* p_end = p + g.TempBuffer.Size;
-        for (int stack_n = 0; stack_n < tool->Results.Size && p + 3 < p_end; stack_n++)
+        for (auto stack_n = 0; stack_n < tool->Results.Size && p + 3 < p_end; stack_n++)
         {
             *p++ = '/';
             char level_desc[256];
             StackToolFormatLevelInfo(tool, stack_n, false, level_desc, IM_ARRAYSIZE(level_desc));
-            for (int n = 0; level_desc[n] && p + 2 < p_end; n++)
+            for (auto n = 0; level_desc[n] && p + 2 < p_end; n++)
             {
                 if (level_desc[n] == '/')
                     *p++ = '\\';
@@ -16219,7 +16232,7 @@ void ImGui::ShowIDStackToolWindow(bool* p_open)
         TableSetupColumn("PushID", ImGuiTableColumnFlags_WidthStretch);
         TableSetupColumn("Result", ImGuiTableColumnFlags_WidthFixed, id_width);
         TableHeadersRow();
-        for (int n = 0; n < tool->Results.Size; n++)
+        for (auto n = 0; n < tool->Results.Size; n++)
         {
             ImGuiStackLevelInfo* info = &tool->Results[n];
             TableNextColumn();

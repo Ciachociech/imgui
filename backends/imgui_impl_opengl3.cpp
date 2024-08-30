@@ -117,12 +117,12 @@
 #include "imgui_impl_opengl3.h"
 #include <stdio.h>
 #include <stdint.h>     // intptr_t
-#if defined(__APPLE__)
+#ifdef __APPLE__
 #include <TargetConditionals.h>
 #endif
 
 // Clang/GCC warnings with -Weverything
-#if defined(__clang__)
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunknown-warning-option" // warning: ignore unknown flags
 #pragma clang diagnostic ignored "-Wold-style-cast"         // warning: use of old-style cast
@@ -131,7 +131,7 @@
 #pragma clang diagnostic ignored "-Wnonportable-system-include-path"
 #pragma clang diagnostic ignored "-Wcast-function-type"     // warning: cast between incompatible function types (for loader)
 #endif
-#if defined(__GNUC__)
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpragmas"                  // warning: unknown option after '#pragma GCC diagnostic' kind
 #pragma GCC diagnostic ignored "-Wunknown-warning-option"   // warning: unknown warning group 'xxx'
@@ -139,25 +139,25 @@
 #endif
 
 // GL includes
-#if defined(IMGUI_IMPL_OPENGL_ES2)
+#ifdef IMGUI_IMPL_OPENGL_ES2
 #if (defined(__APPLE__) && (TARGET_OS_IOS || TARGET_OS_TV))
 #include <OpenGLES/ES2/gl.h>    // Use GL ES 2
 #else
 #include <GLES2/gl2.h>          // Use GL ES 2
 #endif
-#if defined(__EMSCRIPTEN__)
+#ifdef __EMSCRIPTEN__
 #ifndef GL_GLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES
 #endif
 #include <GLES2/gl2ext.h>
 #endif
-#elif defined(IMGUI_IMPL_OPENGL_ES3)
+#elifdef IMGUI_IMPL_OPENGL_ES3
 #if (defined(__APPLE__) && (TARGET_OS_IOS || TARGET_OS_TV))
 #include <OpenGLES/ES3/gl.h>    // Use GL ES 3
 #else
 #include <GLES3/gl3.h>          // Use GL ES 3
 #endif
-#elif !defined(IMGUI_IMPL_OPENGL_LOADER_CUSTOM)
+#elifndef IMGUI_IMPL_OPENGL_LOADER_CUSTOM
 // Modern desktop OpenGL doesn't have a standard portable header file to load OpenGL function pointers.
 // Helper libraries are often used for this purpose! Here we are using our own minimal custom loader based on gl3w.
 // In the rest of your app/engine, you can use another loader of your choice (gl3w, glew, glad, glbinding, glext, glLoadGen, etc.).
@@ -172,7 +172,7 @@
 // Vertex arrays are not supported on ES2/WebGL1 unless Emscripten which uses an extension
 #ifndef IMGUI_IMPL_OPENGL_ES2
 #define IMGUI_IMPL_OPENGL_USE_VERTEX_ARRAY
-#elif defined(__EMSCRIPTEN__)
+#elifdef __EMSCRIPTEN__
 #define IMGUI_IMPL_OPENGL_USE_VERTEX_ARRAY
 #define glBindVertexArray       glBindVertexArrayOES
 #define glGenVertexArrays       glGenVertexArraysOES
@@ -295,7 +295,7 @@ bool    ImGui_ImplOpenGL3_Init(const char* glsl_version)
     io.BackendRendererName = "imgui_impl_opengl3";
 
     // Query for GL version (e.g. 320 for GL 3.2)
-#if defined(IMGUI_IMPL_OPENGL_ES2)
+#ifdef IMGUI_IMPL_OPENGL_ES2
     // GLES 2
     bd->GlVersion = 200;
     bd->GlProfileIsES2 = true;
@@ -309,13 +309,13 @@ bool    ImGui_ImplOpenGL3_Init(const char* glsl_version)
     if (major == 0 && minor == 0)
         sscanf(gl_version_str, "%d.%d", &major, &minor); // Query GL_VERSION in desktop GL 2.x, the string will start with "<major>.<minor>"
     bd->GlVersion = (GLuint)(major * 100 + minor * 10);
-#if defined(GL_CONTEXT_PROFILE_MASK)
+#ifdef GL_CONTEXT_PROFILE_MASK
     if (bd->GlVersion >= 320)
         glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &bd->GlProfileMask);
     bd->GlProfileIsCompat = (bd->GlProfileMask & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) != 0;
 #endif
 
-#if defined(IMGUI_IMPL_OPENGL_ES3)
+#ifdef IMGUI_IMPL_OPENGL_ES3
     bd->GlProfileIsES3 = true;
 #else
     if (strncmp(gl_version_str, "OpenGL ES 3", 11) == 0)
@@ -346,11 +346,11 @@ bool    ImGui_ImplOpenGL3_Init(const char* glsl_version)
     // Note: GLSL version is NOT the same as GL version. Leave this to nullptr if unsure.
     if (glsl_version == nullptr)
     {
-#if defined(IMGUI_IMPL_OPENGL_ES2)
+#ifdef IMGUI_IMPL_OPENGL_ES2
         glsl_version = "#version 100";
-#elif defined(IMGUI_IMPL_OPENGL_ES3)
+#elifdef IMGUI_IMPL_OPENGL_ES3
         glsl_version = "#version 300 es";
-#elif defined(__APPLE__)
+#elifdef __APPLE__
         glsl_version = "#version 150";
 #else
         glsl_version = "#version 130";
@@ -430,7 +430,7 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_wid
 #endif
 
     // Support for GL 4.5 rarely used glClipControl(GL_UPPER_LEFT)
-#if defined(GL_CLIP_ORIGIN)
+#ifdef  GL_CLIP_ORIGIN
     bool clip_origin_lower_left = true;
     if (bd->HasClipOrigin)
     {
@@ -447,7 +447,7 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_wid
     float R = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
     float T = draw_data->DisplayPos.y;
     float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
-#if defined(GL_CLIP_ORIGIN)
+#ifdef GL_CLIP_ORIGIN
     if (!clip_origin_lower_left) { float tmp = T; T = B; B = tmp; } // Swap top and bottom if origin is upper left
 #endif
     const float ortho_projection[4][4] =
@@ -548,7 +548,7 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
     ImVec2 clip_scale = draw_data->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
 
     // Render command lists
-    for (int n = 0; n < draw_data->CmdListsCount; n++)
+    for (auto n = 0; n < draw_data->CmdListsCount; n++)
     {
         const ImDrawList* cmd_list = draw_data->CmdLists[n];
 
@@ -583,7 +583,7 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
             GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx_buffer_size, (const GLvoid*)cmd_list->IdxBuffer.Data, GL_STREAM_DRAW));
         }
 
-        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+        for (auto cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
         {
             const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
             if (pcmd->UserCallback != nullptr)
@@ -951,10 +951,10 @@ void    ImGui_ImplOpenGL3_DestroyDeviceObjects()
 
 //-----------------------------------------------------------------------------
 
-#if defined(__GNUC__)
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
-#if defined(__clang__)
+#ifdef __clang__
 #pragma clang diagnostic pop
 #endif
 

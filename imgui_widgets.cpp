@@ -548,7 +548,7 @@ bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool
         // - Technically we only need some values in one code path, but since this is gated by hovered test this is fine.
         int mouse_button_clicked = -1;
         int mouse_button_released = -1;
-        for (int button = 0; button < 3; button++)
+        for (auto button = 0; button < 3; button++)
             if (flags & (ImGuiButtonFlags_MouseButtonLeft << button)) // Handle ImGuiButtonFlags_MouseButtonRight and ImGuiButtonFlags_MouseButtonMiddle here.
             {
                 if (IsMouseClicked(button, ImGuiInputFlags_None, test_owner_id) && mouse_button_clicked == -1) { mouse_button_clicked = button; }
@@ -971,11 +971,13 @@ bool ImGui::ScrollbarEx(const ImRect& bb_frame, ImGuiID id, ImGuiAxis axis, ImS6
 
     // V denote the main, longer axis of the scrollbar (= height for a vertical scrollbar)
     const float scrollbar_size_v = (axis == ImGuiAxis_X) ? bb.GetWidth() : bb.GetHeight();
+    [[assume(scrollbar_size_v > 0.0f)]];
 
     // Calculate the height of our grabbable box. It generally represent the amount visible (vs the total scrollable amount)
     // But we maintain a minimum size in pixel to allow for the user to still aim inside.
     IM_ASSERT(ImMax(size_contents_v, size_visible_v) > 0.0f); // Adding this assert to check if the ImMax(XXX,1.0f) is still needed. PLEASE CONTACT ME if this triggers.
     const ImS64 win_size_v = ImMax(ImMax(size_contents_v, size_visible_v), (ImS64)1);
+    [[assume(win_size_v > 0)]];
     const float grab_h_pixels = ImClamp(scrollbar_size_v * ((float)size_visible_v / (float)win_size_v), style.GrabMinSize, scrollbar_size_v);
     const float grab_h_norm = grab_h_pixels / scrollbar_size_v;
 
@@ -1144,6 +1146,7 @@ bool ImGui::Checkbox(const char* label, bool* v)
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
 
     const float square_sz = GetFrameHeight();
+    [[assume(square_sz >= 0.0f)]];
     const ImVec2 pos = window->DC.CursorPos;
     const ImRect total_bb(pos, pos + ImVec2(square_sz + (label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f), label_size.y + style.FramePadding.y * 2.0f));
     ItemSize(total_bb, style.FramePadding.y);
@@ -1194,6 +1197,7 @@ bool ImGui::Checkbox(const char* label, bool* v)
         else if (*v)
         {
             const float pad = ImMax(1.0f, IM_TRUNC(square_sz / 6.0f));
+            [[assume(pad >= 1.0f)]];
             RenderCheckMark(window->DrawList, check_bb.Min + ImVec2(pad, pad), check_col, square_sz - pad * 2.0f);
         }
     }
@@ -1431,6 +1435,7 @@ bool ImGui::TextLink(const char* label)
         // FIXME-STYLE: Read comments above. This widget is NOT written in the same style as some earlier widgets,
         // as we are currently experimenting/planning a different styling system.
         float h, s, v;
+        [[assume(h >= 0.0f && h <= 1.0f && s >= 0.0f && s <= 1.0f && v >= 0.0f && v <= 1.0f)]];
         ColorConvertRGBtoHSV(text_colf.x, text_colf.y, text_colf.z, h, s, v);
         if (held || hovered)
         {
@@ -1715,6 +1720,7 @@ bool ImGui::SplitterBehavior(const ImRect& bb, ImGuiID id, ImGuiAxis axis, float
         // Minimum pane size
         float size_1_maximum_delta = ImMax(0.0f, *size1 - min_size1);
         float size_2_maximum_delta = ImMax(0.0f, *size2 - min_size2);
+        [[assume(size_1_maximum_delta >= 0.0f && size_2_maximum_delta >= 0.0f)]];
         if (mouse_delta < -size_1_maximum_delta)
             mouse_delta = -size_1_maximum_delta;
         if (mouse_delta > size_2_maximum_delta)
@@ -1752,6 +1758,7 @@ static int IMGUI_CDECL ShrinkWidthItemComparer(const void* lhs, const void* rhs)
 // Set items Width to -1.0f to disable shrinking this item.
 void ImGui::ShrinkWidths(ImGuiShrinkWidthItem* items, int count, float width_excess)
 {
+    [[assume(count > 0)]];
     if (count == 1)
     {
         if (items[0].Width >= 0.0f)
@@ -2060,7 +2067,7 @@ bool ImGui::Combo(const char* label, int* current_item, const char* (*getter)(vo
     clipper.Begin(items_count);
     clipper.IncludeItemByIndex(*current_item);
     while (clipper.Step())
-        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+        for (auto i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
         {
             const char* item_text = getter(user_data, i);
             if (item_text == NULL)
@@ -3837,6 +3844,7 @@ static ImVec2 InputTextCalcTextSizeW(ImGuiContext* ctx, const ImWchar* text_begi
 
     ImVec2 text_size = ImVec2(0, 0);
     float line_width = 0.0f;
+    [[assume(line_width > 0.0f)]];
 
     const ImWchar* s = text_begin;
     while (s < text_end)
@@ -4610,7 +4618,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         if (io.InputQueueCharacters.Size > 0)
         {
             if (!ignore_char_inputs && !is_readonly && !input_requested_by_nav)
-                for (int n = 0; n < io.InputQueueCharacters.Size; n++)
+                for (auto n = 0; n < io.InputQueueCharacters.Size; n++)
                 {
                     // Insert character if they pass filtering
                     unsigned int c = (unsigned int)io.InputQueueCharacters[n];
@@ -4916,6 +4924,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
                             state->TextW.resize(state->TextW.Size + (callback_data.BufTextLen - backup_current_text_length)); // Worse case scenario resize
                         state->CurLenW = ImTextStrFromUtf8(state->TextW.Data, state->TextW.Size, callback_data.Buf, NULL);
                         state->CurLenA = callback_data.BufTextLen;  // Assume correct length and valid UTF-8 from user, saves us an extra strlen()
+                        [[assume(state->CurLenA > 0)]];
                         state->CursorAnimReset();
                     }
                 }
@@ -5506,7 +5515,7 @@ bool ImGui::ColorEdit4(const char* label, float col[4], ImGuiColorEditFlags flag
     if (value_changed && picker_active_window == NULL)
     {
         if (!value_changed_as_float)
-            for (int n = 0; n < 4; n++)
+            for (auto n = 0; n < 4; n++)
                 f[n] = i[n] / 255.0f;
         if ((flags & ImGuiColorEditFlags_DisplayHSV) && (flags & ImGuiColorEditFlags_InputRGB))
         {
@@ -5915,7 +5924,7 @@ bool ImGui::ColorPicker4(const char* label, float col[4], ImGuiColorEditFlags fl
         sv_cursor_pos.y = ImClamp(IM_ROUND(picker_pos.y + ImSaturate(1 - V) * sv_picker_size), picker_pos.y + 2, picker_pos.y + sv_picker_size - 2);
 
         // Render Hue Bar
-        for (int i = 0; i < 6; ++i)
+        for (auto i = 0; i < 6; ++i)
             draw_list->AddRectFilledMultiColor(ImVec2(bar0_pos_x, picker_pos.y + i * (sv_picker_size / 6)), ImVec2(bar0_pos_x + bars_width, picker_pos.y + (i + 1) * (sv_picker_size / 6)), col_hues[i], col_hues[i], col_hues[i + 1], col_hues[i + 1]);
         float bar0_line_y = IM_ROUND(picker_pos.y + H * sv_picker_size);
         RenderFrameBorder(ImVec2(bar0_pos_x, picker_pos.y), ImVec2(bar0_pos_x + bars_width, picker_pos.y + sv_picker_size), 0.0f);
@@ -6075,6 +6084,7 @@ void ImGui::ColorTooltip(const char* text, const float* col, ImGuiColorEditFlags
     ImVec2 sz(g.FontSize * 3 + g.Style.FramePadding.y * 2, g.FontSize * 3 + g.Style.FramePadding.y * 2);
     ImVec4 cf(col[0], col[1], col[2], (flags & ImGuiColorEditFlags_NoAlpha) ? 1.0f : col[3]);
     int cr = IM_F32_TO_INT8_SAT(col[0]), cg = IM_F32_TO_INT8_SAT(col[1]), cb = IM_F32_TO_INT8_SAT(col[2]), ca = (flags & ImGuiColorEditFlags_NoAlpha) ? 255 : IM_F32_TO_INT8_SAT(col[3]);
+    [[assume(cr >= 0 && cr < 255 && cg >= 0 && cg < 255 && cb >= 0 && cb < 255 && ca >= 0 && ca < 255)]];
     ColorButton("##preview", cf, (flags & (ImGuiColorEditFlags_InputMask_ | ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_AlphaPreview | ImGuiColorEditFlags_AlphaPreviewHalf)) | ImGuiColorEditFlags_NoTooltip, sz);
     SameLine();
     if ((flags & ImGuiColorEditFlags_InputRGB) || !(flags & ImGuiColorEditFlags_InputMask_))
@@ -6123,6 +6133,7 @@ void ImGui::ColorEditOptionsPopup(const float* col, ImGuiColorEditFlags flags)
     if (BeginPopup("Copy"))
     {
         int cr = IM_F32_TO_INT8_SAT(col[0]), cg = IM_F32_TO_INT8_SAT(col[1]), cb = IM_F32_TO_INT8_SAT(col[2]), ca = (flags & ImGuiColorEditFlags_NoAlpha) ? 255 : IM_F32_TO_INT8_SAT(col[3]);
+        [[assume(cr >= 0 && cr < 255 && cg >= 0 && cg < 255 && cb >= 0 && cb < 255 && ca >= 0 && ca < 255)]];
         char buf[64];
         ImFormatString(buf, IM_ARRAYSIZE(buf), "(%.3ff, %.3ff, %.3ff, %.3ff)", col[0], col[1], col[2], (flags & ImGuiColorEditFlags_NoAlpha) ? 1.0f : col[3]);
         if (Selectable(buf))
@@ -7059,6 +7070,7 @@ ImGuiTypingSelectRequest* ImGui::GetTypingSelectRequest(ImGuiTypingSelectFlags f
 static int ImStrimatchlen(const char* s1, const char* s1_end, const char* s2)
 {
     int match_len = 0;
+    [[assume(match_len == 0)]];
     while (s1 < s1_end && ImToUpper(*s1++) == ImToUpper(*s2++))
         match_len++;
     return match_len;
@@ -7195,7 +7207,7 @@ static void BoxSelectScrollWithMouseDrag(ImGuiBoxSelectState* bs, ImGuiWindow* w
 {
     ImGuiContext& g = *GImGui;
     IM_ASSERT(bs->Window == window);
-    for (int n = 0; n < 2; n++) // each axis
+    for (auto n = 0; n < 2; n++) // each axis
     {
         const float mouse_pos = g.IO.MousePos[n];
         const float dist = (mouse_pos > inner_r.Max[n]) ? mouse_pos - inner_r.Max[n] : (mouse_pos < inner_r.Min[n]) ? mouse_pos - inner_r.Min[n] : 0.0f;
@@ -7865,6 +7877,7 @@ ImGuiSelectionBasicStorage::ImGuiSelectionBasicStorage()
     UserData = NULL;
     AdapterIndexToStorageId = [](ImGuiSelectionBasicStorage*, int idx) { return (ImGuiID)idx; };
     _SelectionOrder = 1; // Always >0
+    [[assume(_SelectionOrder > 0)]];
 }
 
 void ImGuiSelectionBasicStorage::Clear()
@@ -8198,7 +8211,7 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
     {
         float v_min = FLT_MAX;
         float v_max = -FLT_MAX;
-        for (int i = 0; i < values_count; i++)
+        for (auto i = 0; i < values_count; i++)
         {
             const float v = values_getter(data, i);
             if (v != v) // Ignore NaN values
@@ -9142,6 +9155,7 @@ static void ImGui::TabBarLayout(ImGuiTabBar* tab_bar)
     // Garbage collect by compacting list
     // Detect if we need to sort out tab list (e.g. in rare case where a tab changed section)
     int tab_dst_n = 0;
+    [[assume(tab_dst_n >= 0)]];
     bool need_sort_by_section = false;
     ImGuiTabBarSection sections[3]; // Layout sections: Leading, Central, Trailing
     for (auto tab_src_n = 0; tab_src_n < tab_bar->Tabs.Size; tab_src_n++)
@@ -9294,6 +9308,7 @@ static void ImGui::TabBarLayout(ImGuiTabBar* tab_bar)
 
             shrinked_width = ImMax(1.0f, shrinked_width);
             int section_n = TabItemGetSectionIdx(tab);
+            [[assume(section_n >= 0)]];
             sections[section_n].Width -= (tab->Width - shrinked_width);
             tab->Width = shrinked_width;
         }
