@@ -26,7 +26,7 @@ C++20 changes:
     Language features:
         [N] - allow lambda capture [=, this) (P0409R2)
         [D] - __VA_OPT__ (P0306R4, P1042R1)
-        [E] - designated initializers (P0329R4)
+        [D] - designated initializers (P0329R4)
 
 Older standards:
 [E] - auto types in for loops

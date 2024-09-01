@@ -3217,9 +3217,7 @@ ImU32 ImGui::GetColorU32(ImU32 col, float alpha_mul)
 void ImGui::PushStyleColor(ImGuiCol idx, ImU32 col)
 {
     ImGuiContext& g = *GImGui;
-    ImGuiColorMod backup;
-    backup.Col = idx;
-    backup.BackupValue = g.Style.Colors[idx];
+    ImGuiColorMod backup{.Col = idx, .BackupValue = g.Style.Colors[idx]};
     g.ColorStack.push_back(backup);
     if (g.DebugFlashStyleColorIdx != idx)
         g.Style.Colors[idx] = ColorConvertU32ToFloat4(col);
@@ -3228,9 +3226,7 @@ void ImGui::PushStyleColor(ImGuiCol idx, ImU32 col)
 void ImGui::PushStyleColor(ImGuiCol idx, const ImVec4& col)
 {
     ImGuiContext& g = *GImGui;
-    ImGuiColorMod backup;
-    backup.Col = idx;
-    backup.BackupValue = g.Style.Colors[idx];
+    ImGuiColorMod backup{.Col = idx, .BackupValue = g.Style.Colors[idx]};
     g.ColorStack.push_back(backup);
     if (g.DebugFlashStyleColorIdx != idx)
         g.Style.Colors[idx] = col;
@@ -6650,11 +6646,8 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
 
     // Add to stack
     g.CurrentWindow = window;
-    ImGuiWindowStackData window_stack_data;
-    window_stack_data.Window = window;
-    window_stack_data.ParentLastItemDataBackup = g.LastItemData;
+    ImGuiWindowStackData window_stack_data{.Window = window, .ParentLastItemDataBackup = g.LastItemData, .DisabledOverrideReenable = (flags & ImGuiWindowFlags_Tooltip) && (g.CurrentItemFlags & ImGuiItemFlags_Disabled)};
     window_stack_data.StackSizesOnBegin.SetToContextState(&g);
-    window_stack_data.DisabledOverrideReenable = (flags & ImGuiWindowFlags_Tooltip) && (g.CurrentItemFlags & ImGuiItemFlags_Disabled);
     g.CurrentWindowStack.push_back(window_stack_data);
     if (flags & ImGuiWindowFlags_ChildMenu)
         g.BeginMenuDepth++;
@@ -8100,9 +8093,7 @@ void ImGui::SetWindowFontScale(float scale)
 void ImGui::PushFocusScope(ImGuiID id)
 {
     ImGuiContext& g = *GImGui;
-    ImGuiFocusScopeData data;
-    data.ID = id;
-    data.WindowID = g.CurrentWindow->ID;
+    ImGuiFocusScopeData data{.ID = id, .WindowID = g.CurrentWindow->ID};
     g.FocusScopeStack.push_back(data);
     g.CurrentFocusScopeId = id;
 }
