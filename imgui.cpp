@@ -5047,7 +5047,7 @@ static void FlattenDrawDataIntoSingleLayer(ImDrawDataBuilder* builder)
     for (auto i = 1; i < IM_ARRAYSIZE(builder->Layers); i++)
         full_size += builder->Layers[i]->Size;
     builder->Layers[0]->resize(full_size);
-    for (int layer_n = 1; layer_n < IM_ARRAYSIZE(builder->Layers); layer_n++)
+    for (auto layer_n = 1; layer_n < IM_ARRAYSIZE(builder->Layers); layer_n++)
     {
         ImVector<ImDrawList*>* layer = builder->Layers[layer_n];
         if (layer->empty())
@@ -5891,11 +5891,7 @@ static ImVec2 CalcWindowSizeAfterConstraint(ImGuiWindow* window, const ImVec2& s
         new_size.y = (cr.Min.y >= 0 && cr.Max.y >= 0) ? ImClamp(new_size.y, cr.Min.y, cr.Max.y) : window->SizeFull.y;
         if (g.NextWindowData.SizeCallback)
         {
-            ImGuiSizeCallbackData data;
-            data.UserData = g.NextWindowData.SizeCallbackUserData;
-            data.Pos = window->Pos;
-            data.CurrentSize = window->SizeFull;
-            data.DesiredSize = new_size;
+            ImGuiSizeCallbackData data{.UserData = g.NextWindowData.SizeCallbackUserData, .Pos = window->Pos, .CurrentSize = window->SizeFull, .DesiredSize = new_size};
             g.NextWindowData.SizeCallback(&data);
             new_size = data.DesiredSize;
         }
