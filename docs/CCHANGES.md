@@ -21,6 +21,12 @@ C++23 changes:
         [N] - std::unreachable (P0627R6)
         [N] - <expected> (P0323R12, P2549R1)
         [N] - formatted output library <print> (P2093R14, P2539R4) - extends time so much
+        
+C++20 changes:
+    Language features:
+        [N] - allow lambda capture [=, this) (P0409R2)
+        [D] - __VA_OPT__ (P0306R4, P1042R1)
+        [D] - designated initializers (P0329R4)
 
 Older standards:
 [E] - auto types in for loops
