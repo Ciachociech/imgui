@@ -933,7 +933,7 @@ void ImDrawList::AddPolyline(const ImVec2* points, const int points_count, ImU32
             }
 
             // Add vertices
-            for (int i = 0; i < points_count; i++)
+            for (auto i = 0; i < points_count; i++)
             {
                 _VtxWritePtr[0].pos = temp_points[i * 4 + 0]; _VtxWritePtr[0].uv = opaque_uv; _VtxWritePtr[0].col = col_trans;
                 _VtxWritePtr[1].pos = temp_points[i * 4 + 1]; _VtxWritePtr[1].uv = opaque_uv; _VtxWritePtr[1].col = col;
@@ -1248,7 +1248,7 @@ void ImDrawList::PathEllipticalArcTo(const ImVec2& center, const ImVec2& radius,
 
     const float cos_rot = ImCos(rot);
     const float sin_rot = ImSin(rot);
-    for (int i = 0; i <= num_segments; i++)
+    for (auto i = 0; i <= num_segments; i++)
     {
         const float a = a_min + ((float)i / (float)num_segments) * (a_max - a_min);
         ImVec2 point(ImCos(a) * radius.x, ImSin(a) * radius.y);
@@ -1333,7 +1333,7 @@ void ImDrawList::PathBezierCubicCurveTo(const ImVec2& p2, const ImVec2& p3, cons
     else
     {
         float t_step = 1.0f / (float)num_segments;
-        for (int i_step = 1; i_step <= num_segments; i_step++)
+        for (auto i_step = 1; i_step <= num_segments; i_step++)
             _Path.push_back(ImBezierCubicCalc(p1, p2, p3, p4, t_step * i_step));
     }
 }
@@ -1349,7 +1349,7 @@ void ImDrawList::PathBezierQuadraticCurveTo(const ImVec2& p2, const ImVec2& p3, 
     else
     {
         float t_step = 1.0f / (float)num_segments;
-        for (int i_step = 1; i_step <= num_segments; i_step++)
+        for (auto i_step = 1; i_step <= num_segments; i_step++)
             _Path.push_back(ImBezierQuadraticCalc(p1, p2, p3, t_step * i_step));
     }
 }
@@ -1901,7 +1901,7 @@ void ImTriangulator::FlipNodeList()
 bool ImTriangulator::IsEar(int i0, int i1, int i2, const ImVec2& v0, const ImVec2& v1, const ImVec2& v2) const
 {
     ImTriangulatorNode** p_end = _Reflexes.Data + _Reflexes.Size;
-    for (ImTriangulatorNode** p = _Reflexes.Data; p < p_end; p++)
+    for (auto** p = _Reflexes.Data; p < p_end; p++)
     {
         ImTriangulatorNode* reflex = *p;
         if (reflex->Index != i0 && reflex->Index != i1 && reflex->Index != i2)
@@ -2266,8 +2266,8 @@ void ImDrawData::DeIndexAllBuffers()
 // or if there is a difference between your window resolution and framebuffer resolution.
 void ImDrawData::ScaleClipRects(const ImVec2& fb_scale)
 {
-    for (ImDrawList* draw_list : CmdLists)
-        for (ImDrawCmd& cmd : draw_list->CmdBuffer)
+    for (auto* draw_list : CmdLists)
+        for (auto& cmd : draw_list->CmdBuffer)
             cmd.ClipRect = ImVec4(cmd.ClipRect.x * fb_scale.x, cmd.ClipRect.y * fb_scale.y, cmd.ClipRect.z * fb_scale.x, cmd.ClipRect.w * fb_scale.y);
 }
 
@@ -2288,7 +2288,7 @@ void ImGui::ShadeVertsLinearColorGradientKeepAlpha(ImDrawList* draw_list, int ve
     const int col_delta_r = ((int)(col1 >> IM_COL32_R_SHIFT) & 0xFF) - col0_r;
     const int col_delta_g = ((int)(col1 >> IM_COL32_G_SHIFT) & 0xFF) - col0_g;
     const int col_delta_b = ((int)(col1 >> IM_COL32_B_SHIFT) & 0xFF) - col0_b;
-    for (ImDrawVert* vert = vert_start; vert < vert_end; vert++)
+    for (auto* vert = vert_start; vert < vert_end; vert++)
     {
         float d = ImDot(vert->pos - gradient_p0, gradient_extent);
         float t = ImClamp(d * gradient_inv_length2, 0.0f, 1.0f);
@@ -2314,12 +2314,12 @@ void ImGui::ShadeVertsLinearUV(ImDrawList* draw_list, int vert_start_idx, int ve
     {
         const ImVec2 min = ImMin(uv_a, uv_b);
         const ImVec2 max = ImMax(uv_a, uv_b);
-        for (ImDrawVert* vertex = vert_start; vertex < vert_end; ++vertex)
+        for (auto* vertex = vert_start; vertex < vert_end; ++vertex)
             vertex->uv = ImClamp(uv_a + ImMul(ImVec2(vertex->pos.x, vertex->pos.y) - a, scale), min, max);
     }
     else
     {
-        for (ImDrawVert* vertex = vert_start; vertex < vert_end; ++vertex)
+        for (auto* vertex = vert_start; vertex < vert_end; ++vertex)
             vertex->uv = uv_a + ImMul(ImVec2(vertex->pos.x, vertex->pos.y) - a, scale);
     }
 }
@@ -2328,7 +2328,7 @@ void ImGui::ShadeVertsTransformPos(ImDrawList* draw_list, int vert_start_idx, in
 {
     ImDrawVert* vert_start = draw_list->VtxBuffer.Data + vert_start_idx;
     ImDrawVert* vert_end = draw_list->VtxBuffer.Data + vert_end_idx;
-    for (ImDrawVert* vertex = vert_start; vertex < vert_end; ++vertex)
+    for (auto* vertex = vert_start; vertex < vert_end; ++vertex)
         vertex->pos = ImRotate(vertex->pos- pivot_in, cos_a, sin_a) + pivot_out;
 }
 
@@ -2418,7 +2418,7 @@ ImFontAtlas::~ImFontAtlas()
 void    ImFontAtlas::ClearInputData()
 {
     IM_ASSERT(!Locked && "Cannot modify a locked ImFontAtlas between NewFrame() and EndFrame/Render()!");
-    for (ImFontConfig& font_cfg : ConfigData)
+    for (auto& font_cfg : ConfigData)
         if (font_cfg.FontData && font_cfg.FontDataOwnedByAtlas)
         {
             IM_FREE(font_cfg.FontData);
@@ -2426,7 +2426,7 @@ void    ImFontAtlas::ClearInputData()
         }
 
     // When clearing this we lose access to the font name and other information used to build the font.
-    for (ImFont* font : Fonts)
+    for (auto* font : Fonts)
         if (font->ConfigData >= ConfigData.Data && font->ConfigData < ConfigData.Data + ConfigData.Size)
         {
             font->ConfigData = NULL;
@@ -2490,7 +2490,7 @@ void    ImFontAtlas::GetTexDataAsRGBA32(unsigned char** out_pixels, int* out_wid
             TexPixelsRGBA32 = (unsigned int*)IM_ALLOC((size_t)TexWidth * (size_t)TexHeight * 4);
             const unsigned char* src = pixels;
             unsigned int* dst = TexPixelsRGBA32;
-            for (int n = TexWidth * TexHeight; n > 0; n--)
+            for (auto n = TexWidth * TexHeight; n > 0; n--)
                 *dst++ = IM_COL32(255, 255, 255, (unsigned int)(*src++));
         }
     }
@@ -2768,9 +2768,9 @@ static void UnpackBitVectorToFlatIndexList(const ImBitVector* in, ImVector<int>*
     IM_ASSERT(sizeof(in->Storage.Data[0]) == sizeof(int));
     const ImU32* it_begin = in->Storage.begin();
     const ImU32* it_end = in->Storage.end();
-    for (const ImU32* it = it_begin; it < it_end; it++)
+    for (const auto* it = it_begin; it < it_end; it++)
         if (ImU32 entries_32 = *it)
-            for (ImU32 bit_n = 0; bit_n < 32; bit_n++)
+            for (auto bit_n = 0; bit_n < 32; bit_n++)
                 if (entries_32 & ((ImU32)1 << bit_n))
                     out->push_back((int)(((it - it_begin) << 5) + bit_n));
 }
@@ -2825,7 +2825,7 @@ static bool ImFontAtlasBuildWithStbTruetype(ImFontAtlas* atlas)
         // Measure highest codepoints
         ImFontBuildDstData& dst_tmp = dst_tmp_array[src_tmp.DstIndex];
         src_tmp.SrcRanges = cfg.GlyphRanges ? cfg.GlyphRanges : atlas->GetGlyphRangesDefault();
-        for (const ImWchar* src_range = src_tmp.SrcRanges; src_range[0] && src_range[1]; src_range += 2)
+        for (const auto* src_range = src_tmp.SrcRanges; src_range[0] && src_range[1]; src_range += 2)
         {
             // Check for valid range. This may also help detect *some* dangling pointers, because a common
             // user error is to setup ImFontConfig::GlyphRanges with a pointer to data that isn't persistent.
@@ -2846,8 +2846,8 @@ static bool ImFontAtlasBuildWithStbTruetype(ImFontAtlas* atlas)
         if (dst_tmp.GlyphsSet.Storage.empty())
             dst_tmp.GlyphsSet.Create(dst_tmp.GlyphsHighest + 1);
 
-        for (const ImWchar* src_range = src_tmp.SrcRanges; src_range[0] && src_range[1]; src_range += 2)
-            for (unsigned int codepoint = src_range[0]; codepoint <= src_range[1]; codepoint++)
+        for (const auto* src_range = src_tmp.SrcRanges; src_range[0] && src_range[1]; src_range += 2)
+            for (auto codepoint = src_range[0]; codepoint <= src_range[1]; codepoint++)
             {
                 if (dst_tmp.GlyphsSet.TestBit(codepoint))    // Don't overwrite existing glyphs. We could make this an option for MergeMode (e.g. MergeOverwrite==true)
                     continue;
@@ -2982,7 +2982,7 @@ static bool ImFontAtlasBuildWithStbTruetype(ImFontAtlas* atlas)
             unsigned char multiply_table[256];
             ImFontAtlasBuildMultiplyCalcLookupTable(multiply_table, cfg.RasterizerMultiply);
             stbrp_rect* r = &src_tmp.Rects[0];
-            for (int glyph_i = 0; glyph_i < src_tmp.GlyphsCount; glyph_i++, r++)
+            for (auto glyph_i = 0; glyph_i < src_tmp.GlyphsCount; glyph_i++, r++)
                 if (r->was_packed)
                     ImFontAtlasBuildMultiplyRectAlpha8(multiply_table, atlas->TexPixelsAlpha8, r->x, r->y, r->w, r->h, atlas->TexWidth * 1);
         }
@@ -3049,7 +3049,7 @@ const ImFontBuilderIO* ImFontAtlasGetBuilderForStbTruetype()
 
 void ImFontAtlasUpdateConfigDataPointers(ImFontAtlas* atlas)
 {
-    for (ImFontConfig& font_cfg : atlas->ConfigData)
+    for (auto& font_cfg : atlas->ConfigData)
     {
         ImFont* font = font_cfg.DstFont;
         if (!font_cfg.MergeMode)
@@ -3223,7 +3223,7 @@ void ImFontAtlasBuildInit(ImFontAtlas* atlas)
     // - We started rounding in 1.90 WIP (18991) as our layout system currently doesn't support non-rounded font size well yet.
     // - Note that using io.FontGlobalScale or SetWindowFontScale(), with are legacy-ish, partially supported features, can still lead to unrounded sizes.
     // - We may support it better later and remove this rounding.
-    for (ImFontConfig& cfg : atlas->ConfigData)
+    for (auto& cfg : atlas->ConfigData)
        cfg.SizePixels = ImTrunc(cfg.SizePixels);
 
     // Register texture region for mouse cursors or standard white pixels
@@ -3267,7 +3267,7 @@ void ImFontAtlasBuildFinish(ImFontAtlas* atlas)
     }
 
     // Build all fonts lookup tables
-    for (ImFont* font : atlas->Fonts)
+    for (auto* font : atlas->Fonts)
         if (font->DirtyLookupTables)
             font->BuildLookupTable();
 
@@ -3559,7 +3559,7 @@ void ImFontGlyphRangesBuilder::AddText(const char* text, const char* text_end)
 void ImFontGlyphRangesBuilder::AddRanges(const ImWchar* ranges)
 {
     for (; ranges[0]; ranges += 2)
-        for (unsigned int c = ranges[0]; c <= ranges[1] && c <= IM_UNICODE_CODEPOINT_MAX; c++) //-V560
+        for (auto c = ranges[0]; c <= ranges[1] && c <= IM_UNICODE_CODEPOINT_MAX; c++) //-V560
             AddChar((ImWchar)c);
 }
 
@@ -4400,7 +4400,7 @@ void ImGui::RenderColorRectWithAlphaCheckerboard(ImDrawList* draw_list, ImVec2 p
             float y1 = ImClamp(y, p_min.y, p_max.y), y2 = ImMin(y + grid_step, p_max.y);
             if (y2 <= y1)
                 continue;
-            for (float x = p_min.x + grid_off.x + (yi & 1) * grid_step; x < p_max.x; x += grid_step * 2.0f)
+            for (auto x = p_min.x + grid_off.x + (yi & 1) * grid_step; x < p_max.x; x += grid_step * 2.0f)
             {
                 float x1 = ImClamp(x, p_min.x, p_max.x), x2 = ImMin(x + grid_step, p_max.x);
                 if (x2 <= x1)
