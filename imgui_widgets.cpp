@@ -1775,7 +1775,7 @@ void ImGui::ShrinkWidths(ImGuiShrinkWidthItem* items, int count, float width_exc
         if (max_width_to_remove_per_item <= 0.0f)
             break;
         float width_to_remove_per_item = ImMin(width_excess / count_same_width, max_width_to_remove_per_item);
-        for (int item_n = 0; item_n < count_same_width; item_n++)
+        for (auto item_n = 0; item_n < count_same_width; item_n++)
             items[item_n].Width -= width_to_remove_per_item;
         width_excess -= width_to_remove_per_item * count_same_width;
     }
@@ -2680,7 +2680,7 @@ bool ImGui::DragScalarN(const char* label, ImGuiDataType data_type, void* p_data
     PushID(label);
     PushMultiItemsWidths(components, CalcItemWidth());
     size_t type_size = GDataTypeInfo[data_type].Size;
-    for (int i = 0; i < components; i++)
+    for (auto i = 0; i < components; i++)
     {
         PushID(i);
         if (i > 0)
@@ -3268,7 +3268,7 @@ bool ImGui::SliderScalarN(const char* label, ImGuiDataType data_type, void* v, i
     PushID(label);
     PushMultiItemsWidths(components, CalcItemWidth());
     size_t type_size = GDataTypeInfo[data_type].Size;
-    for (int i = 0; i < components; i++)
+    for (auto i = 0; i < components; i++)
     {
         PushID(i);
         if (i > 0)
@@ -3721,7 +3721,7 @@ bool ImGui::InputScalarN(const char* label, ImGuiDataType data_type, void* p_dat
     PushID(label);
     PushMultiItemsWidths(components, CalcItemWidth());
     size_t type_size = GDataTypeInfo[data_type].Size;
-    for (int i = 0; i < components; i++)
+    for (auto i = 0; i < components; i++)
     {
         PushID(i);
         if (i > 0)
@@ -4771,7 +4771,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
                 const int clipboard_len = (int)strlen(clipboard);
                 ImWchar* clipboard_filtered = (ImWchar*)IM_ALLOC((clipboard_len + 1) * sizeof(ImWchar));
                 int clipboard_filtered_len = 0;
-                for (const char* s = clipboard; *s != 0; )
+                for (const auto* s = clipboard; *s != 0; )
                 {
                     unsigned int c;
                     s += ImTextCharFromUtf8(&c, s, NULL);
@@ -5053,7 +5053,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
             searches_remaining += is_multiline ? 1 : 0;
             int line_count = 0;
             //for (const ImWchar* s = text_begin; (s = (const ImWchar*)wcschr((const wchar_t*)s, (wchar_t)'\n')) != NULL; s++)  // FIXME-OPT: Could use this when wchar_t are 16-bit
-            for (const ImWchar* s = text_begin; *s != 0; s++)
+            for (const auto* s = text_begin; *s != 0; s++)
                 if (*s == '\n')
                 {
                     line_count++;
@@ -5126,7 +5126,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
             float bg_offy_up = is_multiline ? 0.0f : -1.0f;    // FIXME: those offsets should be part of the style? they don't play so well with multi-line selection.
             float bg_offy_dn = is_multiline ? 0.0f : 2.0f;
             ImVec2 rect_pos = draw_pos + select_start_offset - draw_scroll;
-            for (const ImWchar* p = text_selected_begin; p < text_selected_end; )
+            for (const auto* p = text_selected_begin; p < text_selected_end; )
             {
                 if (rect_pos.y > clip_rect.w + g.FontSize)
                     break;
@@ -5251,7 +5251,7 @@ void ImGui::DebugNodeInputTextState(ImGuiInputTextState* state)
     if (BeginChild("undopoints", ImVec2(0.0f, GetTextLineHeight() * 10), ImGuiChildFlags_Border | ImGuiChildFlags_ResizeY)) // Visualize undo state
     {
         PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-        for (int n = 0; n < IMSTB_TEXTEDIT_UNDOSTATECOUNT; n++)
+        for (auto n = 0; n < IMSTB_TEXTEDIT_UNDOSTATECOUNT; n++)
         {
             ImStb::StbUndoRecord* undo_rec = &undo_state->undo_rec[n];
             const char undo_rec_type = (n < undo_state->undo_point) ? 'u' : (n >= undo_state->redo_point) ? 'r' : ' ';
@@ -5413,7 +5413,7 @@ bool ImGui::ColorEdit4(const char* label, float col[4], ImGuiColorEditFlags flag
         const int fmt_idx = hide_prefix ? 0 : (flags & ImGuiColorEditFlags_DisplayHSV) ? 2 : 1;
 
         float prev_split = 0.0f;
-        for (int n = 0; n < components; n++)
+        for (auto n = 0; n < components; n++)
         {
             if (n > 0)
                 SameLine(0, style.ItemInnerSpacing.x);
@@ -5877,7 +5877,7 @@ bool ImGui::ColorPicker4(const char* label, float col[4], ImGuiColorEditFlags fl
         // Render Hue Wheel
         const float aeps = 0.5f / wheel_r_outer; // Half a pixel arc length in radians (2pi cancels out).
         const int segment_per_arc = ImMax(4, (int)wheel_r_outer / 12);
-        for (int n = 0; n < 6; n++)
+        for (auto n = 0; n < 6; n++)
         {
             const float a0 = (n)     /6.0f * 2.0f * IM_PI - aeps;
             const float a1 = (n+1.0f)/6.0f * 2.0f * IM_PI + aeps;
@@ -6170,7 +6170,7 @@ void ImGui::ColorPickerOptionsPopup(const float* ref_col, ImGuiColorEditFlags fl
     {
         ImVec2 picker_size(g.FontSize * 8, ImMax(g.FontSize * 8 - (GetFrameHeight() + g.Style.ItemInnerSpacing.x), 1.0f)); // FIXME: Picker size copied from main picker function
         PushItemWidth(picker_size.x);
-        for (int picker_type = 0; picker_type < 2; picker_type++)
+        for (auto picker_type = 0; picker_type < 2; picker_type++)
         {
             // Draw small/thumbnail version of each picker type (over an invisible button for selection)
             if (picker_type > 0) Separator();
@@ -6998,7 +6998,7 @@ ImGuiTypingSelectRequest* ImGui::GetTypingSelectRequest(ImGuiTypingSelectFlags f
     const int buffer_max_len = IM_ARRAYSIZE(data->SearchBuffer) - 1;
     int buffer_len = (int)strlen(data->SearchBuffer);
     bool select_request = false;
-    for (ImWchar w : g.IO.InputQueueCharacters)
+    for (auto w : g.IO.InputQueueCharacters)
     {
         const int w_len = ImTextCountUtf8BytesFromStr(&w, &w + 1);
         if (w < 32 || (buffer_len == 0 && ImCharIsBlankW(w)) || (buffer_len + w_len > buffer_max_len)) // Ignore leading blanks
@@ -7105,7 +7105,7 @@ int ImGui::TypingSelectFindNextSingleCharMatch(ImGuiTypingSelectRequest* req, in
 
     int first_match_idx = -1;
     bool return_next_match = false;
-    for (int idx = 0; idx < items_count; idx++)
+    for (auto idx = 0; idx < items_count; idx++)
     {
         const char* item_name = get_item_name_func(user_data, idx);
         if (ImStrimatchlen(req->SearchBuffer, req->SearchBuffer + req->SingleCharSize, item_name) < req->SingleCharSize)
@@ -7126,7 +7126,7 @@ int ImGui::TypingSelectFindBestLeadingMatch(ImGuiTypingSelectRequest* req, int i
 {
     int longest_match_idx = -1;
     int longest_match_len = 0;
-    for (int idx = 0; idx < items_count; idx++)
+    for (auto idx = 0; idx < items_count; idx++)
     {
         const char* item_name = get_item_name_func(user_data, idx);
         const int match_len = ImStrimatchlen(req->SearchBuffer, req->SearchBuffer + req->SearchBufferLen, item_name);
@@ -7319,8 +7319,7 @@ void ImGui::EndBoxSelect(const ImRect& scope_rect, ImGuiMultiSelectFlags ms_flag
 
 static void DebugLogMultiSelectRequests(const char* function, const ImGuiMultiSelectIO* io)
 {
-    ImGuiContext& g = *GImGui;
-    for (const ImGuiSelectionRequest& req : io->Requests)
+    for (ImGuiContext& g = *GImGui; const auto& req : io->Requests)
     {
         if (req.Type == ImGuiSelectionRequestType_SetAll)    IMGUI_DEBUG_LOG_SELECTION("[selection] %s: Request: SetAll %d (= %s)\n", function, req.Selected, req.Selected ? "SelectAll" : "Clear");
         if (req.Type == ImGuiSelectionRequestType_SetRange)  IMGUI_DEBUG_LOG_SELECTION("[selection] %s: Request: SetRange %" IM_PRId64 "..%" IM_PRId64 " (0x%" IM_PRIX64 "..0x%" IM_PRIX64 ") = %d (dir %d)\n", function, req.RangeFirstItem, req.RangeLastItem, req.RangeFirstItem, req.RangeLastItem, req.Selected, req.RangeDirection);
@@ -7990,7 +7989,7 @@ void ImGuiSelectionBasicStorage::ApplyRequests(ImGuiMultiSelectIO* ms_io)
     // FIXME-OPT: For each block of consecutive SetRange request:
     // - add all requests to a sorted list, store ID, selected, offset in ImGuiStorage.
     // - rewrite sorted storage a single time.
-    for (ImGuiSelectionRequest& req : ms_io->Requests)
+    for (auto& req : ms_io->Requests)
     {
         if (req.Type == ImGuiSelectionRequestType_SetAll)
         {
@@ -7999,7 +7998,7 @@ void ImGuiSelectionBasicStorage::ApplyRequests(ImGuiMultiSelectIO* ms_io)
             {
                 _Storage.Data.reserve(ms_io->ItemsCount);
                 const int size_before_amends = _Storage.Data.Size;
-                for (int idx = 0; idx < ms_io->ItemsCount; idx++, _SelectionOrder++)
+                for (auto idx = 0; idx < ms_io->ItemsCount; idx++, _SelectionOrder++)
                     ImGuiSelectionBasicStorage_BatchSetItemSelected(this, GetStorageIdFromIndex(idx), req.Selected, size_before_amends, _SelectionOrder);
                 ImGuiSelectionBasicStorage_BatchFinish(this, req.Selected, size_before_amends);
             }
@@ -8012,7 +8011,7 @@ void ImGuiSelectionBasicStorage::ApplyRequests(ImGuiMultiSelectIO* ms_io)
             {
                 // Multiple sorted insertion + copy likely to be faster.
                 // Technically we could do a single copy with a little more work (sort sequential SetRange requests)
-                for (int idx = (int)req.RangeFirstItem; idx <= (int)req.RangeLastItem; idx++)
+                for (auto idx = (int)req.RangeFirstItem; idx <= (int)req.RangeLastItem; idx++)
                     SetItemSelected(GetStorageIdFromIndex(idx), req.Selected);
             }
             else
@@ -8021,7 +8020,7 @@ void ImGuiSelectionBasicStorage::ApplyRequests(ImGuiMultiSelectIO* ms_io)
                 // Use req.RangeDirection to set order field so that shift+clicking from 1 to 5 is different than shift+clicking from 5 to 1
                 const int size_before_amends = _Storage.Data.Size;
                 int selection_order = _SelectionOrder + ((req.RangeDirection < 0) ? selection_changes - 1 : 0);
-                for (int idx = (int)req.RangeFirstItem; idx <= (int)req.RangeLastItem; idx++, selection_order += req.RangeDirection)
+                for (auto idx = (int)req.RangeFirstItem; idx <= (int)req.RangeLastItem; idx++, selection_order += req.RangeDirection)
                     ImGuiSelectionBasicStorage_BatchSetItemSelected(this, GetStorageIdFromIndex(idx), req.Selected, size_before_amends, selection_order);
                 if (req.Selected)
                     _SelectionOrder += selection_changes;
@@ -8045,13 +8044,13 @@ ImGuiSelectionExternalStorage::ImGuiSelectionExternalStorage()
 void ImGuiSelectionExternalStorage::ApplyRequests(ImGuiMultiSelectIO* ms_io)
 {
     IM_ASSERT(AdapterSetItemSelected);
-    for (ImGuiSelectionRequest& req : ms_io->Requests)
+    for (auto& req : ms_io->Requests)
     {
         if (req.Type == ImGuiSelectionRequestType_SetAll)
-            for (int idx = 0; idx < ms_io->ItemsCount; idx++)
+            for (auto idx = 0; idx < ms_io->ItemsCount; idx++)
                 AdapterSetItemSelected(this, idx, req.Selected);
         if (req.Type == ImGuiSelectionRequestType_SetRange)
-            for (int idx = (int)req.RangeFirstItem; idx <= (int)req.RangeLastItem; idx++)
+            for (auto idx = (int)req.RangeFirstItem; idx <= (int)req.RangeLastItem; idx++)
                 AdapterSetItemSelected(this, idx, req.Selected);
     }
 }
@@ -8147,7 +8146,7 @@ bool ImGui::ListBox(const char* label, int* current_item, const char* (*getter)(
     clipper.Begin(items_count, GetTextLineHeightWithSpacing()); // We know exactly our line height here so we pass it as a minor optimization, but generally you don't need to.
     clipper.IncludeItemByIndex(*current_item);
     while (clipper.Step())
-        for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+        for (auto i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
         {
             const char* item_text = getter(user_data, i);
             if (item_text == NULL)
@@ -8261,7 +8260,7 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
         const ImU32 col_base = GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLines : ImGuiCol_PlotHistogram);
         const ImU32 col_hovered = GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLinesHovered : ImGuiCol_PlotHistogramHovered);
 
-        for (int n = 0; n < res_w; n++)
+        for (auto n = 0; n < res_w; n++)
         {
             const float t1 = t0 + t_step;
             const int v1_idx = (int)(t0 * item_count + 0.5f);

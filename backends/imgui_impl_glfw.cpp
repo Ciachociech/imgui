@@ -669,7 +669,7 @@ void ImGui_ImplGlfw_Shutdown()
         emscripten_set_wheel_callback(bd->CanvasSelector, nullptr, false, nullptr);
 #endif
 
-    for (ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
+    for (auto cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
         glfwDestroyCursor(bd->MouseCursors[cursor_n]);
 
     // Windows: restore our WndProc hook

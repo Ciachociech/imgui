@@ -27,6 +27,9 @@ C++20 changes:
         [N] - allow lambda capture [=, this) (P0409R2)
         [D] - __VA_OPT__ (P0306R4, P1042R1)
         [D] - designated initializers (P0329R4)
+        [N] - template-parameter-list for generic lambdas (P0428R2)
+        [N] - lambdas in unevaluated contexts (P0315R4)
+        [D] - init-statements for range-based for (R0614R1)
 
 Older standards:
 [E] - auto types in for loops

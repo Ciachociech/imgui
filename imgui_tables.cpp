@@ -560,7 +560,7 @@ bool    ImGui::BeginTableEx(const char* name, ImGuiID id, int columns_count, ImG
         table->ReorderColumn = table->ResizedColumn = table->LastResizedColumn = -1;
         table->AutoFitSingleColumn = -1;
         table->HoveredColumnBody = table->HoveredColumnBorder = -1;
-        for (int n = 0; n < columns_count; n++)
+        for (auto n = 0; n < columns_count; n++)
         {
             ImGuiTableColumn* column = &table->Columns[n];
             if (old_columns_to_preserve && n < old_columns_count)
@@ -596,7 +596,7 @@ bool    ImGui::BeginTableEx(const char* name, ImGuiID id, int columns_count, ImG
     {
         const float scale_factor = new_ref_scale_unit / table->RefScale;
         //IMGUI_DEBUG_PRINT("[table] %08X RefScaleUnit %.3f -> %.3f, scaling width by %.3f\n", table->ID, table->RefScaleUnit, new_ref_scale_unit, scale_factor);
-        for (int n = 0; n < columns_count; n++)
+        for (auto n = 0; n < columns_count; n++)
             table->Columns[n].WidthRequest = table->Columns[n].WidthRequest * scale_factor;
     }
     table->RefScale = new_ref_scale_unit;
@@ -634,7 +634,7 @@ void ImGui::TableBeginInitMemory(ImGuiTable* table, int columns_count)
     span_allocator.Reserve(0, columns_count * sizeof(ImGuiTableColumn));
     span_allocator.Reserve(1, columns_count * sizeof(ImGuiTableColumnIdx));
     span_allocator.Reserve(2, columns_count * sizeof(ImGuiTableCellData), 4);
-    for (int n = 3; n < 6; n++)
+    for (auto n = 3; n < 6; n++)
         span_allocator.Reserve(n, columns_bit_array_size);
     table->RawData = IM_ALLOC(span_allocator.GetArenaSizeInBytes());
     memset(table->RawData, 0, span_allocator.GetArenaSizeInBytes());
@@ -707,7 +707,7 @@ void ImGui::TableBeginApplyRequests(ImGuiTable* table)
     // Handle display order reset request
     if (table->IsResetDisplayOrderRequest)
     {
-        for (int n = 0; n < table->ColumnsCount; n++)
+        for (auto n = 0; n < table->ColumnsCount; n++)
             table->DisplayOrderToIndex[n] = table->Columns[n].DisplayOrder = (ImGuiTableColumnIdx)n;
         table->IsResetDisplayOrderRequest = false;
         table->IsSettingsDirty = true;
@@ -960,7 +960,7 @@ void ImGui::TableUpdateLayout(ImGuiTable* table)
     const float width_avail_for_stretched_columns = width_avail - width_spacings - sum_width_requests;
     float width_remaining_for_stretched_columns = width_avail_for_stretched_columns;
     table->ColumnsGivenWidth = width_spacings + (table->CellPaddingX * 2.0f) * table->ColumnsEnabledCount;
-    for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
+    for (auto column_n = 0; column_n < table->ColumnsCount; column_n++)
     {
         if (!IM_BITARRAY_TESTBIT(table->EnabledMaskByIndex, column_n))
             continue;
@@ -987,7 +987,7 @@ void ImGui::TableUpdateLayout(ImGuiTable* table)
     // [Part 5] Redistribute stretch remainder width due to rounding (remainder width is < 1.0f * number of Stretch column).
     // Using right-to-left distribution (more likely to match resizing cursor).
     if (width_remaining_for_stretched_columns >= 1.0f && !(table->Flags & ImGuiTableFlags_PreciseWidths))
-        for (int order_n = table->ColumnsCount - 1; stretch_sum_weights > 0.0f && width_remaining_for_stretched_columns >= 1.0f && order_n >= 0; order_n--)
+        for (auto order_n = table->ColumnsCount - 1; stretch_sum_weights > 0.0f && width_remaining_for_stretched_columns >= 1.0f && order_n >= 0; order_n--)
         {
             if (!IM_BITARRAY_TESTBIT(table->EnabledMaskByDisplayOrder, order_n))
                 continue;
@@ -1970,7 +1970,7 @@ void ImGui::TableEndRow(ImGuiTable* table)
         if (draw_cell_bg_color)
         {
             ImGuiTableCellData* cell_data_end = &table->RowCellData[table->RowCellDataCurrent];
-            for (ImGuiTableCellData* cell_data = &table->RowCellData[0]; cell_data <= cell_data_end; cell_data++)
+            for (auto* cell_data = &table->RowCellData[0]; cell_data <= cell_data_end; cell_data++)
             {
                 // As we render the BG here we need to clip things (for layout we would not)
                 // FIXME: This cancels the OuterPadding addition done by TableGetCellBgRect(), need to keep it while rendering correctly while scrolling.
@@ -1997,7 +1997,7 @@ void ImGui::TableEndRow(ImGuiTable* table)
     // We need to do that in TableEndRow() instead of TableBeginRow() so the list clipper can mark end of row and
     // get the new cursor position.
     if (unfreeze_rows_request)
-        for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
+        for (auto column_n = 0; column_n < table->ColumnsCount; column_n++)
             table->Columns[column_n].NavLayerCurrent = ImGuiNavLayer_Main;
     if (unfreeze_rows_actual)
     {
@@ -2015,7 +2015,7 @@ void ImGui::TableEndRow(ImGuiTable* table)
         float row_height = table->RowPosY2 - table->RowPosY1;
         table->RowPosY2 = window->DC.CursorPos.y = table->WorkRect.Min.y + table->RowPosY2 - table->OuterRect.Min.y;
         table->RowPosY1 = table->RowPosY2 - row_height;
-        for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
+        for (auto column_n = 0; column_n < table->ColumnsCount; column_n++)
         {
             ImGuiTableColumn* column = &table->Columns[column_n];
             column->DrawChannelCurrent = column->DrawChannelUnfrozen;
@@ -2585,7 +2585,7 @@ void ImGui::TableMergeDrawChannels(ImGuiTable* table)
     // [DEBUG] Display merge groups
 #if 0
     if (g.IO.KeyShift)
-        for (int merge_group_n = 0; merge_group_n < IM_ARRAYSIZE(merge_groups); merge_group_n++)
+        for (auto merge_group_n = 0; merge_group_n < IM_ARRAYSIZE(merge_groups); merge_group_n++)
         {
             MergeGroup* merge_group = &merge_groups[merge_group_n];
             if (merge_group->ChannelsCount == 0)
@@ -2922,7 +2922,7 @@ void ImGui::TableSortSpecsSanitize(ImGuiTable* table)
 
     // Fallback default sort order (if no column with the ImGuiTableColumnFlags_DefaultSort flag)
     if (sort_order_count == 0 && !(table->Flags & ImGuiTableFlags_SortTristate))
-        for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
+        for (auto column_n = 0; column_n < table->ColumnsCount; column_n++)
         {
             ImGuiTableColumn* column = &table->Columns[column_n];
             if (column->IsEnabled && !(column->Flags & ImGuiTableColumnFlags_NoSort))
@@ -3558,7 +3558,7 @@ ImGuiTableSettings* ImGui::TableSettingsFindByID(ImGuiID id)
 {
     // FIXME-OPT: Might want to store a lookup map for this?
     ImGuiContext& g = *GImGui;
-    for (ImGuiTableSettings* settings = g.SettingsTables.begin(); settings != NULL; settings = g.SettingsTables.next_chunk(settings))
+    for (auto* settings = g.SettingsTables.begin(); settings != NULL; settings = g.SettingsTables.next_chunk(settings))
         if (settings->ID == id)
             return settings;
     return NULL;
@@ -3777,7 +3777,7 @@ static void TableSettingsHandler_ReadLine(ImGuiContext*, ImGuiSettingsHandler*, 
 static void TableSettingsHandler_WriteAll(ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* buf)
 {
     ImGuiContext& g = *ctx;
-    for (ImGuiTableSettings* settings = g.SettingsTables.begin(); settings != NULL; settings = g.SettingsTables.next_chunk(settings))
+    for (auto* settings = g.SettingsTables.begin(); settings != NULL; settings = g.SettingsTables.next_chunk(settings))
     {
         if (settings->ID == 0) // Skip ditched settings
             continue;
@@ -3796,7 +3796,7 @@ static void TableSettingsHandler_WriteAll(ImGuiContext* ctx, ImGuiSettingsHandle
         if (settings->RefScale != 0.0f)
             buf->appendf("RefScale=%g\n", settings->RefScale);
         ImGuiTableColumnSettings* column = settings->GetColumnSettings();
-        for (int column_n = 0; column_n < settings->ColumnsCount; column_n++, column++)
+        for (auto column_n = 0; column_n < settings->ColumnsCount; column_n++, column++)
         {
             // "Column 0  UserID=0x42AD2D21 Width=100 Visible=1 Order=0 Sort=0v"
             bool save_column = column->UserID != 0 || save_size || save_visible || save_order || (save_sort && column->SortOrder != -1);
@@ -3875,14 +3875,14 @@ void ImGui::TableGcCompactSettings()
 {
     ImGuiContext& g = *GImGui;
     int required_memory = 0;
-    for (ImGuiTableSettings* settings = g.SettingsTables.begin(); settings != NULL; settings = g.SettingsTables.next_chunk(settings))
+    for (auto* settings = g.SettingsTables.begin(); settings != NULL; settings = g.SettingsTables.next_chunk(settings))
         if (settings->ID != 0)
             required_memory += (int)TableSettingsCalcChunkSize(settings->ColumnsCount);
     if (required_memory == g.SettingsTables.Buf.Size)
         return;
     ImChunkStream<ImGuiTableSettings> new_chunk_stream;
     new_chunk_stream.Buf.reserve(required_memory);
-    for (ImGuiTableSettings* settings = g.SettingsTables.begin(); settings != NULL; settings = g.SettingsTables.next_chunk(settings))
+    for (auto* settings = g.SettingsTables.begin(); settings != NULL; settings = g.SettingsTables.next_chunk(settings))
         if (settings->ID != 0)
             memcpy(new_chunk_stream.alloc_chunk(TableSettingsCalcChunkSize(settings->ColumnsCount)), settings, TableSettingsCalcChunkSize(settings->ColumnsCount));
     g.SettingsTables.swap(new_chunk_stream);
