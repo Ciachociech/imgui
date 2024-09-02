@@ -30,6 +30,8 @@ C++20 changes:
         [N] - template-parameter-list for generic lambdas (P0428R2)
         [N] - lambdas in unevaluated contexts (P0315R4)
         [D] - init-statements for range-based for (R0614R1)
+        [?] - adl and function templates that are not visible (P0846R0)
+        [] - attributes likely/unlikely (P0479R6)
 
 Older standards:
 [E] - auto types in for loops

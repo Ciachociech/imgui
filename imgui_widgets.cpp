@@ -168,7 +168,7 @@ void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags)
     const ImVec2 text_pos(window->DC.CursorPos.x, window->DC.CursorPos.y + window->DC.CurrLineTextBaseOffset);
     const float wrap_pos_x = window->DC.TextWrapPos;
     const bool wrap_enabled = (wrap_pos_x >= 0.0f);
-    if (text_end - text <= 2000 || wrap_enabled)
+    if (text_end - text <= 2000 || wrap_enabled) [[likely]]
     {
         // Common case
         const float wrap_width = wrap_enabled ? CalcWrapWidthForPos(window->DC.CursorPos, wrap_pos_x) : 0.0f;
@@ -182,7 +182,7 @@ void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags)
         // Render (we don't hide text after ## in this end-user function)
         RenderTextWrapped(bb.Min, text_begin, text_end, wrap_width);
     }
-    else
+    else [[unlikely]]
     {
         // Long text!
         // Perform manual coarse clipping to optimize for long multi-line text
@@ -1217,7 +1217,7 @@ bool ImGui::CheckboxFlagsT(const char* label, T* flags, T flags_value)
     bool all_on = (*flags & flags_value) == flags_value;
     bool any_on = (*flags & flags_value) != 0;
     bool pressed;
-    if (!all_on && any_on)
+    if (!all_on && any_on) [[likely]]
     {
         ImGuiContext& g = *GImGui;
         g.NextItemData.ItemFlags |= ImGuiItemFlags_MixedValue;
@@ -1228,11 +1228,11 @@ bool ImGui::CheckboxFlagsT(const char* label, T* flags, T flags_value)
         pressed = Checkbox(label, &all_on);
 
     }
-    if (pressed)
+    if (pressed) [[unlikely]]
     {
-        if (all_on)
+        if (all_on) [[unlikely]]
             *flags |= flags_value;
-        else
+        else [[likely]]
             *flags &= ~flags_value;
     }
     return pressed;
@@ -1649,7 +1649,7 @@ void ImGui::SeparatorTextEx(ImGuiID id, const char* label, const char* label_end
     window->DC.CursorPosPrevLine.x = label_pos.x + label_size.x;
 
     const ImU32 separator_col = GetColorU32(ImGuiCol_Separator);
-    if (label_size.x > 0.0f)
+    if (label_size.x > 0.0f) [[likely]]
     {
         const float sep1_x2 = label_pos.x - style.ItemSpacing.x;
         const float sep2_x1 = label_pos.x + label_size.x + extra_w + style.ItemSpacing.x;
@@ -1661,7 +1661,7 @@ void ImGui::SeparatorTextEx(ImGuiID id, const char* label, const char* label_end
             LogSetNextTextDecoration("---", NULL);
         RenderTextEllipsis(window->DrawList, label_pos, ImVec2(bb.Max.x, bb.Max.y + style.ItemSpacing.y), bb.Max.x, bb.Max.x, label, label_end, &label_size);
     }
-    else
+    else [[unlikely]]
     {
         if (g.LogEnabled)
             LogText("---");
@@ -2869,7 +2869,7 @@ float ImGui::ScaleRatioFromValueT(ImGuiDataType data_type, TYPE v, TYPE v_min, T
             float zero_point_center = (-(float)v_min) / ((float)v_max - (float)v_min); // The zero point in parametric space.  There's an argument we should take the logarithmic nature into account when calculating this, but for now this should do (and the most common case of a symmetrical range works fine)
             float zero_point_snap_L = zero_point_center - zero_deadzone_halfsize;
             float zero_point_snap_R = zero_point_center + zero_deadzone_halfsize;
-            if (v == 0.0f)
+            if (v == 0.0f) [[unlikely]]
                 result = zero_point_center; // Special case for exactly zero
             else if (v < 0.0f)
                 result = (1.0f - (float)(ImLog(-(FLOATTYPE)v_clamped / logarithmic_zero_epsilon) / ImLog(-v_min_fudged / logarithmic_zero_epsilon))) * zero_point_snap_L;
@@ -2998,11 +2998,11 @@ bool ImGui::SliderBehaviorT(const ImRect& bb, ImGuiID id, ImGuiDataType data_typ
         float clicked_t = 0.0f;
         if (g.ActiveIdSource == ImGuiInputSource_Mouse)
         {
-            if (!g.IO.MouseDown[0])
+            if (!g.IO.MouseDown[0]) [[unlikely]]
             {
                 ClearActiveID();
             }
-            else
+            else [[likely]]
             {
                 const float mouse_abs_pos = g.IO.MousePos[axis];
                 if (g.ActiveIdIsJustActivated)
@@ -3064,12 +3064,12 @@ bool ImGui::SliderBehaviorT(const ImRect& bb, ImGuiID id, ImGuiDataType data_typ
             {
                 clicked_t = ScaleRatioFromValueT<TYPE, SIGNEDTYPE, FLOATTYPE>(data_type, *v, v_min, v_max, is_logarithmic, logarithmic_zero_epsilon, zero_deadzone_halfsize);
 
-                if ((clicked_t >= 1.0f && delta > 0.0f) || (clicked_t <= 0.0f && delta < 0.0f)) // This is to avoid applying the saturation when already past the limits
+                if ((clicked_t >= 1.0f && delta > 0.0f) || (clicked_t <= 0.0f && delta < 0.0f)) [[unlikely]] // This is to avoid applying the saturation when already past the limits
                 {
                     set_new_value = false;
                     g.SliderCurrentAccum = 0.0f; // If pushing up against the limits, don't continue to accumulate
                 }
-                else
+                else [[likely]]
                 {
                     set_new_value = true;
                     float old_clicked_t = clicked_t;
@@ -4578,9 +4578,9 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         {
             if (hovered)
             {
-                if (io.KeyShift)
+                if (io.KeyShift) [[unlikely]]
                     stb_textedit_drag(state, &state->Stb, mouse_x, mouse_y);
-                else
+                else [[likely]]
                     stb_textedit_click(state, &state->Stb, mouse_x, mouse_y);
                 state->CursorAnimReset();
             }
@@ -6013,17 +6013,17 @@ bool ImGui::ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFl
     {
         // Because GetColorU32() multiplies by the global style Alpha and we don't want to display a checkerboard if the source code had no alpha
         ImVec4 col_source = (flags & ImGuiColorEditFlags_AlphaPreview) ? col_rgb : col_rgb_without_alpha;
-        if (col_source.w < 1.0f)
+        if (col_source.w < 1.0f) [[likely]]
             RenderColorRectWithAlphaCheckerboard(window->DrawList, bb_inner.Min, bb_inner.Max, GetColorU32(col_source), grid_step, ImVec2(off, off), rounding);
-        else
+        else [[unlikely]]
             window->DrawList->AddRectFilled(bb_inner.Min, bb_inner.Max, GetColorU32(col_source), rounding);
     }
     RenderNavHighlight(bb, id);
     if ((flags & ImGuiColorEditFlags_NoBorder) == 0)
     {
-        if (g.Style.FrameBorderSize > 0.0f)
+        if (g.Style.FrameBorderSize > 0.0f) [[likely]]
             RenderFrameBorder(bb.Min, bb.Max, rounding);
-        else
+        else [[unlikely]]
             window->DrawList->AddRect(bb.Min, bb.Max, GetColorU32(ImGuiCol_FrameBg), rounding); // Color button are often in need of some sort of border
     }
 
@@ -8007,7 +8007,7 @@ void ImGuiSelectionBasicStorage::ApplyRequests(ImGuiMultiSelectIO* ms_io)
         {
             const int selection_changes = (int)req.RangeLastItem - (int)req.RangeFirstItem + 1;
             //ImGuiContext& g = *GImGui; IMGUI_DEBUG_LOG_SELECTION("Req %d/%d: set %d to %d\n", ms_io->Requests.index_from_ptr(&req), ms_io->Requests.Size, selection_changes, req.Selected);
-            if (selection_changes == 1 || (selection_changes < Size / 100))
+            if (selection_changes == 1 || (selection_changes < Size / 100)) 
             {
                 // Multiple sorted insertion + copy likely to be faster.
                 // Technically we could do a single copy with a little more work (sort sequential SetRange requests)
@@ -8366,7 +8366,7 @@ void ImGui::Value(const char* prefix, float v, const char* float_format)
         ImFormatString(fmt, IM_ARRAYSIZE(fmt), "%%s: %s", float_format);
         Text(fmt, prefix, v);
     }
-    else
+    else 
     {
         Text("%s: %.3f", prefix, v);
     }
@@ -9838,11 +9838,11 @@ bool    ImGui::TabItemEx(ImGuiTabBar* tab_bar, const char* label, bool* p_open, 
     tab->Flags = flags;
 
     // Append name _WITH_ the zero-terminator
-    if (docked_window != NULL)
+    if (docked_window != NULL) [[unlikely]]
     {
         IM_ASSERT(docked_window == NULL); // master branch only
     }
-    else
+    else [[likely]]
     {
         tab->NameOffset = (ImS32)tab_bar->TabsNames.size();
         tab_bar->TabsNames.append(label, label + strlen(label) + 1);

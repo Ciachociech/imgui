@@ -374,14 +374,14 @@ bool    ImGui::BeginTableEx(const char* name, ImGuiID id, int columns_count, ImG
     // Instance data (for instance 0, TableID == TableInstanceID)
     ImGuiID instance_id;
     table->InstanceCurrent = (ImS16)instance_no;
-    if (instance_no > 0)
+    if (instance_no > 0) [[likely]]
     {
         IM_ASSERT(table->ColumnsCount == columns_count && "BeginTable(): Cannot change columns count mid-frame while preserving same ID");
         if (table->InstanceDataExtra.Size < instance_no)
             table->InstanceDataExtra.push_back(ImGuiTableInstanceData());
         instance_id = GetIDWithSeed(instance_no, GetIDWithSeed("##Instances", NULL, id)); // Push "##Instances" followed by (int)instance_no in ID stack.
     }
-    else
+    else [[unlikely]]
     {
         instance_id = id;
     }
@@ -844,9 +844,9 @@ void ImGui::TableUpdateLayout(ImGuiTable* table)
         // Mark as enabled and link to previous/next enabled column
         column->PrevEnabledColumn = (ImGuiTableColumnIdx)prev_visible_column_idx;
         column->NextEnabledColumn = -1;
-        if (prev_visible_column_idx != -1)
+        if (prev_visible_column_idx != -1) [[unlikely]]
             table->Columns[prev_visible_column_idx].NextEnabledColumn = (ImGuiTableColumnIdx)column_n;
-        else
+        else [[likely]]
             table->LeftMostEnabledColumn = (ImGuiTableColumnIdx)column_n;
         column->IndexWithinEnabledSet = table->ColumnsEnabledCount++;
         ImBitArraySetBit(table->EnabledMaskByIndex, column_n);
@@ -1131,14 +1131,14 @@ void ImGui::TableUpdateLayout(ImGuiTable* table)
         //    column->WorkMinX = ImLerp(column->WorkMinX, ImMax(column->StartX, column->MaxX - column->ContentWidthRowsUnfrozen), 0.5f);
 
         // Reset content width variables
-        if (table->InstanceCurrent == 0)
+        if (table->InstanceCurrent == 0) [[unlikely]]
         {
             column->ContentMaxXFrozen = column->WorkMinX;
             column->ContentMaxXUnfrozen = column->WorkMinX;
             column->ContentMaxXHeadersUsed = column->WorkMinX;
             column->ContentMaxXHeadersIdeal = column->WorkMinX;
         }
-        else
+        else [[likely]]
         {
             // As we store an absolute value to make per-cell updates faster, we need to offset values used for width computation.
             const float offset_from_previous_instance = column->WorkMinX - previous_instance_work_min_x;
@@ -1353,9 +1353,9 @@ void    ImGui::EndTable()
     inner_window->DC.CursorMaxPos = temp_data->HostBackupCursorMaxPos;
     const float inner_content_max_y = table->RowPosY2;
     IM_ASSERT(table->RowPosY2 == inner_window->DC.CursorPos.y);
-    if (inner_window != outer_window)
+    if (inner_window != outer_window) [[likely]]
         inner_window->DC.CursorMaxPos.y = inner_content_max_y;
-    else if (!(flags & ImGuiTableFlags_NoHostExtendY))
+    else if (!(flags & ImGuiTableFlags_NoHostExtendY)) [[unlikely]]
         table->OuterRect.Max.y = table->InnerRect.Max.y = ImMax(table->OuterRect.Max.y, inner_content_max_y); // Patch OuterRect/InnerRect height
     table->WorkRect.Max.y = ImMax(table->WorkRect.Max.y, table->OuterRect.Max.y);
     table_instance->LastOuterHeight = table->OuterRect.GetHeight();
@@ -1469,14 +1469,14 @@ void    ImGui::EndTable()
     // Layout in outer window
     // (FIXME: To allow auto-fit and allow desirable effect of SameLine() we dissociate 'used' vs 'ideal' size by overriding
     // CursorPosPrevLine and CursorMaxPos manually. That should be a more general layout feature, see same problem e.g. #3414)
-    if (inner_window != outer_window)
+    if (inner_window != outer_window) [[likely]]
     {
         short backup_nav_layers_active_mask = inner_window->DC.NavLayersActiveMask;
         inner_window->DC.NavLayersActiveMask |= 1 << ImGuiNavLayer_Main; // So empty table don't appear to navigate differently.
         EndChild();
         inner_window->DC.NavLayersActiveMask = backup_nav_layers_active_mask;
     }
-    else
+    else [[unlikely]]
     {
         ItemSize(table->OuterRect.GetSize());
         ItemAdd(table->OuterRect, 0);
@@ -3117,13 +3117,13 @@ void ImGui::TableHeader(const char* label)
     const bool highlight = (table->HighlightColumnHeader == column_n);
     bool hovered, held;
     bool pressed = ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_AllowOverlap);
-    if (held || hovered || highlight)
+    if (held || hovered || highlight) [[likely]]
     {
         const ImU32 col = GetColorU32(held ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
         //RenderFrame(bb.Min, bb.Max, col, false, 0.0f);
         TableSetBgColor(ImGuiTableBgTarget_CellBg, col, table->CurrentColumn);
     }
-    else
+    else [[unlikely]]
     {
         // Submit single cell bg color in the case we didn't submit a full header row
         if ((table->RowFlags & ImGuiTableRowFlags_Headers) == 0)

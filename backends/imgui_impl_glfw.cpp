@@ -434,12 +434,12 @@ void ImGui_ImplGlfw_CursorEnterCallback(GLFWwindow* window, int entered)
         bd->PrevUserCallbackCursorEnter(window, entered);
 
     ImGuiIO& io = ImGui::GetIO();
-    if (entered)
+    if (entered) [[likely]]
     {
         bd->MouseWindow = window;
         io.AddMousePosEvent(bd->LastValidMousePos.x, bd->LastValidMousePos.y);
     }
-    else if (!entered && bd->MouseWindow == window)
+    else if (!entered && bd->MouseWindow == window) [[unlikely]]
     {
         bd->LastValidMousePos = io.MousePos;
         bd->MouseWindow = nullptr;
@@ -727,12 +727,12 @@ static void ImGui_ImplGlfw_UpdateMouseCursor()
     // (those braces are here to reduce diff with multi-viewports support in 'docking' branch)
     {
         GLFWwindow* window = bd->Window;
-        if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
+        if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor) [[unlikely]]
         {
             // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         }
-        else
+        else [[likely]]
         {
             // Show OS mouse cursor
             // FIXME-PLATFORM: Unfocused windows seems to fail changing the mouse cursor with GLFW 3.2, but 3.3 works here.

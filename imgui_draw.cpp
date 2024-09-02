@@ -573,9 +573,9 @@ int ImDrawList::_CalcCircleAutoSegmentCount(float radius) const
 {
     // Automatic segment count
     const int radius_idx = (int)(radius + 0.999999f); // ceil to never reduce accuracy
-    if (radius_idx >= 0 && radius_idx < IM_ARRAYSIZE(_Data->CircleSegmentCounts))
+    if (radius_idx >= 0 && radius_idx < IM_ARRAYSIZE(_Data->CircleSegmentCounts)) [[likely]]
         return _Data->CircleSegmentCounts[radius_idx]; // Use cached value
-    else
+    else [[unlikely]]
         return IM_DRAWLIST_CIRCLE_AUTO_SEGMENT_CALC(radius, _Data->CircleSegmentMaxError);
 }
 
@@ -2508,9 +2508,9 @@ ImFont* ImFontAtlas::AddFont(const ImFontConfig* font_cfg)
     IM_ASSERT(font_cfg->SizePixels > 0.0f);
 
     // Create new font
-    if (!font_cfg->MergeMode)
+    if (!font_cfg->MergeMode) [[likely]]
         Fonts.push_back(IM_NEW(ImFont));
-    else
+    else [[unlikely]]
         IM_ASSERT(!Fonts.empty() && "Cannot use MergeMode for the first font"); // When using MergeMode make sure that a font has already been added before. You can use ImGui::GetIO().Fonts->AddFontDefault() to add the default imgui font.
 
     ConfigData.push_back(*font_cfg);
@@ -3863,9 +3863,9 @@ const char* ImFont::CalcWordWrapPositionA(float scale, const char* text, const c
     {
         unsigned int c = (unsigned int)*s;
         const char* next_s;
-        if (c < 0x80)
+        if (c < 0x80) [[likely]]
             next_s = s + 1;
-        else
+        else [[unlikely]]
             next_s = s + ImTextCharFromUtf8(&c, s, text_end);
 
         if (c < 32)
@@ -3885,7 +3885,7 @@ const char* ImFont::CalcWordWrapPositionA(float scale, const char* text, const c
         }
 
         const float char_width = ((int)c < IndexAdvanceX.Size ? IndexAdvanceX.Data[c] : FallbackAdvanceX);
-        if (ImCharIsBlankW(c))
+        if (ImCharIsBlankW(c)) [[likely]]
         {
             if (inside_word)
             {
@@ -3896,7 +3896,7 @@ const char* ImFont::CalcWordWrapPositionA(float scale, const char* text, const c
             blank_width += char_width;
             inside_word = false;
         }
-        else
+        else [[unlikely]]
         {
             word_width += char_width;
             if (inside_word)
@@ -3971,9 +3971,9 @@ ImVec2 ImFont::CalcTextSizeA(float size, float max_width, float wrap_width, cons
         // Decode and advance source
         const char* prev_s = s;
         unsigned int c = (unsigned int)*s;
-        if (c < 0x80)
+        if (c < 0x80) [[likely]]
             s += 1;
-        else
+        else [[unlikely]]
             s += ImTextCharFromUtf8(&c, s, text_end);
 
         if (c < 32)
@@ -4115,9 +4115,9 @@ void ImFont::RenderText(ImDrawList* draw_list, float size, const ImVec2& pos, Im
 
         // Decode and advance source
         unsigned int c = (unsigned int)*s;
-        if (c < 0x80)
+        if (c < 0x80) [[likely]]
             s += 1;
-        else
+        else [[unlikely]]
             s += ImTextCharFromUtf8(&c, s, text_end);
 
         if (c < 32)
@@ -4522,14 +4522,14 @@ static unsigned int stb_decompress(unsigned char *output, const unsigned char *i
     for (;;) {
         const unsigned char *old_i = i;
         i = stb_decompress_token(i);
-        if (i == old_i) {
+        if (i == old_i) { [[likely]]
             if (*i == 0x05 && i[1] == 0xfa) {
                 IM_ASSERT(stb__dout == output + olen);
                 if (stb__dout != output + olen) return 0;
                 if (stb_adler32(1, output, olen) != (unsigned int) stb__in4(2))
                     return 0;
                 return olen;
-            } else {
+            } else { [[unlikely]]
                 IM_ASSERT(0); /* NOTREACHED */
                 return 0;
             }

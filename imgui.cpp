@@ -2399,9 +2399,9 @@ int ImTextStrToUtf8(char* out_buf, int out_buf_size, const ImWchar* in_text, con
     while (buf_p < buf_end - 1 && (!in_text_end || in_text < in_text_end) && *in_text)
     {
         unsigned int c = (unsigned int)(*in_text++);
-        if (c < 0x80)
+        if (c < 0x80) [[likely]]
             *buf_p++ = (char)c;
-        else
+        else [[unlikely]]
             buf_p += ImTextCharToUtf8_inline(buf_p, (int)(buf_end - buf_p - 1), c);
     }
     *buf_p = 0;
@@ -2414,9 +2414,9 @@ int ImTextCountUtf8BytesFromStr(const ImWchar* in_text, const ImWchar* in_text_e
     while ((!in_text_end || in_text < in_text_end) && *in_text)
     {
         unsigned int c = (unsigned int)(*in_text++);
-        if (c < 0x80)
+        if (c < 0x80) [[likely]]
             bytes_count++;
-        else
+        else [[unlikely]]
             bytes_count += ImTextCountUtf8BytesFromChar(c);
     }
     return bytes_count;
@@ -4832,9 +4832,9 @@ void ImGui::NewFrame()
         g.HoverItemUnlockedStationaryId = g.HoverItemDelayId;
     else if (g.HoverItemDelayId == 0)
         g.HoverItemUnlockedStationaryId = 0;
-    if (g.HoveredWindow != NULL && g.MouseStationaryTimer >= g.Style.HoverStationaryDelay)
+    if (g.HoveredWindow != NULL && g.MouseStationaryTimer >= g.Style.HoverStationaryDelay) [[likely]]
         g.HoverWindowUnlockedStationaryId = g.HoveredWindow->ID;
-    else if (g.HoveredWindow == NULL)
+    else if (g.HoveredWindow == NULL) [[unlikely]]
         g.HoverWindowUnlockedStationaryId = 0;
 
     // Update hover delay for IsItemHovered() with delays and tooltips
@@ -5397,7 +5397,7 @@ void ImGui::FindHoveredWindowEx(const ImVec2& pos, bool find_first_and_in_any_vi
             if (ImRect(hole_pos, hole_pos + hole_size).Contains(pos))
                 continue;
         }
-
+ 
         if (find_first_and_in_any_viewport)
         {
             hovered_window = window;
@@ -5775,13 +5775,13 @@ static void UpdateWindowInFocusOrderList(ImGuiWindow* window, bool just_created,
 
     const bool new_is_explicit_child = (new_flags & ImGuiWindowFlags_ChildWindow) != 0 && ((new_flags & ImGuiWindowFlags_Popup) == 0 || (new_flags & ImGuiWindowFlags_ChildMenu) != 0);
     const bool child_flag_changed = new_is_explicit_child != window->IsExplicitChild;
-    if ((just_created || child_flag_changed) && !new_is_explicit_child)
+    if ((just_created || child_flag_changed) && !new_is_explicit_child) [[likely]]
     {
         IM_ASSERT(!g.WindowsFocusOrder.contains(window));
         g.WindowsFocusOrder.push_back(window);
         window->FocusOrder = (short)(g.WindowsFocusOrder.Size - 1);
     }
-    else if (!just_created && child_flag_changed && new_is_explicit_child)
+    else if (!just_created && child_flag_changed && new_is_explicit_child) [[unlikely]]
     {
         IM_ASSERT(g.WindowsFocusOrder[window->FocusOrder] == window);
         for (auto n = window->FocusOrder + 1; n < g.WindowsFocusOrder.Size; n++)
@@ -6101,14 +6101,14 @@ static int ImGui::UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& si
         if (hovered || held)
             g.MouseCursor = (resize_grip_n & 1) ? ImGuiMouseCursor_ResizeNESW : ImGuiMouseCursor_ResizeNWSE;
 
-        if (held && g.IO.MouseDoubleClicked[0])
+        if (held && g.IO.MouseDoubleClicked[0]) [[likely]]
         {
             // Auto-fit when double-clicking
             size_target = CalcWindowSizeAfterConstraint(window, size_auto_fit);
             ret_auto_fit_mask = 0x03; // Both axises
             ClearActiveID();
         }
-        else if (held)
+        else if (held) [[unlikely]]
         {
             // Resize from any of the four corners
             // We don't use an incremental MouseDelta but rather compute an absolute target size based on mouse position
@@ -6146,7 +6146,7 @@ static int ImGui::UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& si
             hovered = false;
         if (hovered || held)
             g.MouseCursor = (axis == ImGuiAxis_X) ? ImGuiMouseCursor_ResizeEW : ImGuiMouseCursor_ResizeNS;
-        if (held && g.IO.MouseDoubleClicked[0])
+        if (held && g.IO.MouseDoubleClicked[0]) [[likely]]
         {
             // Double-clicking bottom or right border auto-fit on this axis
             // FIXME: CalcWindowAutoFitSize() doesn't take into account that only one side may be auto-fit when calculating scrollbars.
@@ -6159,7 +6159,7 @@ static int ImGui::UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& si
             }
             ClearActiveID();
         }
-        else if (held)
+        else if (held) [[unlikely]]
         {
             // Switch to relative resizing mode when border geometry moved (e.g. resizing a child altering parent scroll), in order to avoid resizing feedback loop.
             // Currently only using relative mode on resizable child windows, as the problem to solve is more likely noticeable for them, but could apply for all windows eventually.
@@ -6921,13 +6921,13 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         }
 
         const bool window_pos_with_pivot = (window->SetWindowPosVal.x != FLT_MAX && window->HiddenFramesCannotSkipItems == 0);
-        if (window_pos_with_pivot)
+        if (window_pos_with_pivot) [[likely]]
             SetWindowPos(window, window->SetWindowPosVal - window->Size * window->SetWindowPosPivot, 0); // Position given a pivot (e.g. for centering)
-        else if ((flags & ImGuiWindowFlags_ChildMenu) != 0)
+        else if ((flags & ImGuiWindowFlags_ChildMenu) != 0) [[unlikely]]
             window->Pos = FindBestWindowPosForPopup(window);
-        else if ((flags & ImGuiWindowFlags_Popup) != 0 && !window_pos_set_by_api && window_just_appearing_after_hidden_for_resize)
+        else if ((flags & ImGuiWindowFlags_Popup) != 0 && !window_pos_set_by_api && window_just_appearing_after_hidden_for_resize) [[unlikely]]
             window->Pos = FindBestWindowPosForPopup(window);
-        else if ((flags & ImGuiWindowFlags_Tooltip) != 0 && !window_pos_set_by_api && !window_is_child_tooltip)
+        else if ((flags & ImGuiWindowFlags_Tooltip) != 0 && !window_pos_set_by_api && !window_is_child_tooltip) [[unlikely]]
             window->Pos = FindBestWindowPosForPopup(window);
 
         // Calculate the range of allowed position for that window (to be movable and visible past safe area padding)
@@ -7889,13 +7889,13 @@ void ImGui::SetWindowSize(ImGuiWindow* window, const ImVec2& size, ImGuiCond con
 
     // Set
     ImVec2 old_size = window->SizeFull;
-    if (size.x <= 0.0f)
+    if (size.x <= 0.0f) [[likely]]
         window->AutoFitOnlyGrows = false;
-    else
+    else [[unlikely]]
         window->SizeFull.x = IM_TRUNC(size.x);
-    if (size.y <= 0.0f)
+    if (size.y <= 0.0f) [[likely]]
         window->AutoFitOnlyGrows = false;
-    else
+    else [[unlikely]]
         window->SizeFull.y = IM_TRUNC(size.y);
     if (old_size.x != window->SizeFull.x || old_size.y != window->SizeFull.y)
         MarkIniSettingsDirty(window);
@@ -7966,12 +7966,12 @@ void ImGui::SetWindowFocus()
 
 void ImGui::SetWindowFocus(const char* name)
 {
-    if (name)
+    if (name) [[likely]]
     {
         if (ImGuiWindow* window = FindWindowByName(name))
             FocusWindow(window);
     }
-    else
+    else [[unlikely]]
     {
         FocusWindow(NULL);
     }
@@ -8597,7 +8597,7 @@ void ImGui::GetTypematicRepeatRate(ImGuiInputFlags flags, float* repeat_delay, f
     {
     case ImGuiInputFlags_RepeatRateNavMove:             *repeat_delay = g.IO.KeyRepeatDelay * 0.72f; *repeat_rate = g.IO.KeyRepeatRate * 0.80f; return;
     case ImGuiInputFlags_RepeatRateNavTweak:            *repeat_delay = g.IO.KeyRepeatDelay * 0.72f; *repeat_rate = g.IO.KeyRepeatRate * 0.30f; return;
-    case ImGuiInputFlags_RepeatRateDefault: default:    *repeat_delay = g.IO.KeyRepeatDelay * 1.00f; *repeat_rate = g.IO.KeyRepeatRate * 1.00f; return;
+    [[likely]] case ImGuiInputFlags_RepeatRateDefault: default:    *repeat_delay = g.IO.KeyRepeatDelay * 1.00f; *repeat_rate = g.IO.KeyRepeatRate * 1.00f; return;
     }
 }
 
@@ -9286,9 +9286,9 @@ static void ImGui::UpdateKeyboardInputs()
         if (key_data->DownDuration == 0.0f)
         {
             ImGuiKey key = (ImGuiKey)(ImGuiKey_KeysData_OFFSET + i);
-            if (IsKeyboardKey(key))
+            if (IsKeyboardKey(key)) [[likely]]
                 g.LastKeyboardKeyPressTime = g.Time;
-            else if (key == ImGuiKey_ReservedForModCtrl || key == ImGuiKey_ReservedForModShift || key == ImGuiKey_ReservedForModAlt || key == ImGuiKey_ReservedForModSuper)
+            else if (key == ImGuiKey_ReservedForModCtrl || key == ImGuiKey_ReservedForModShift || key == ImGuiKey_ReservedForModAlt || key == ImGuiKey_ReservedForModSuper) [[unlikely]]
                 g.LastKeyboardKeyPressTime = g.Time;
         }
     }
@@ -9325,9 +9325,9 @@ static void ImGui::UpdateMouseInputs()
         io.MousePos = g.MouseLastValidPos = ImFloor(io.MousePos);
 
     // If mouse just appeared or disappeared (usually denoted by -FLT_MAX components) we cancel out movement in MouseDelta
-    if (IsMousePosValid(&io.MousePos) && IsMousePosValid(&io.MousePosPrev))
+    if (IsMousePosValid(&io.MousePos) && IsMousePosValid(&io.MousePosPrev)) [[likely]]
         io.MouseDelta = io.MousePos - io.MousePosPrev;
-    else
+    else [[unlikely]]
         io.MouseDelta = ImVec2(0.0f, 0.0f);
 
     // Update stationary timer.
@@ -9357,9 +9357,9 @@ static void ImGui::UpdateMouseInputs()
                 if (ImLengthSqr(delta_from_click_pos) < io.MouseDoubleClickMaxDist * io.MouseDoubleClickMaxDist)
                     is_repeated_click = true;
             }
-            if (is_repeated_click)
+            if (is_repeated_click) [[unlikely]]
                 io.MouseClickedLastCount[i]++;
-            else
+            else [[likely]]
                 io.MouseClickedLastCount[i] = 1;
             io.MouseClickedTime[i] = g.Time;
             io.MouseClickedPos[i] = io.MousePos;
@@ -10383,14 +10383,14 @@ void ImGui::SameLine(float offset_from_start_x, float spacing_w)
     if (window->SkipItems)
         return;
 
-    if (offset_from_start_x != 0.0f)
+    if (offset_from_start_x != 0.0f) [[likely]]
     {
         if (spacing_w < 0.0f)
             spacing_w = 0.0f;
         window->DC.CursorPos.x = window->Pos.x - window->Scroll.x + offset_from_start_x + spacing_w + window->DC.GroupOffset.x + window->DC.ColumnsOffset.x;
         window->DC.CursorPos.y = window->DC.CursorPosPrevLine.y;
     }
-    else
+    else [[unlikely]]
     {
         if (spacing_w < 0.0f)
             spacing_w = g.Style.ItemSpacing.x;
@@ -11174,11 +11174,11 @@ void ImGui::OpenPopupEx(ImGuiID id, ImGuiPopupFlags popup_flags)
     popup_ref.OpenMousePos = IsMousePosValid(&g.IO.MousePos) ? g.IO.MousePos : popup_ref.OpenPopupPos;
 
     IMGUI_DEBUG_LOG_POPUP("[popup] OpenPopupEx(0x%08X)\n", id);
-    if (g.OpenPopupStack.Size < current_stack_size + 1)
+    if (g.OpenPopupStack.Size < current_stack_size + 1) [[likely]]
     {
         g.OpenPopupStack.push_back(popup_ref);
     }
-    else
+    else [[unlikely]]
     {
         // Gently handle the user mistakenly calling OpenPopup() every frames: it is likely a programming mistake!
         // However, if we were to run the regular code path, the ui would become completely unusable because the popup will always be
@@ -11693,9 +11693,9 @@ void ImGui::SetFocusID(ImGuiID id, ImGuiWindow* window)
     if (g.LastItemData.ID == id)
         window->NavRectRel[nav_layer] = WindowRectAbsToRel(window, g.LastItemData.NavRect);
 
-    if (g.ActiveIdSource == ImGuiInputSource_Keyboard || g.ActiveIdSource == ImGuiInputSource_Gamepad)
+    if (g.ActiveIdSource == ImGuiInputSource_Keyboard || g.ActiveIdSource == ImGuiInputSource_Gamepad) [[likely]]
         g.NavDisableMouseHover = true;
-    else
+    else [[unlikely]]
         g.NavDisableHighlight = true;
 
     // Clear preferred scoring position (NavMoveRequestApplyResult() will tend to restore it)
@@ -12148,11 +12148,11 @@ void ImGui::NavRestoreLayer(ImGuiNavLayer layer)
             IMGUI_DEBUG_LOG_FOCUS("[focus] NavRestoreLayer: from \"%s\" to SetNavWindow(\"%s\")\n", prev_nav_window->Name, g.NavWindow->Name);
     }
     ImGuiWindow* window = g.NavWindow;
-    if (window->NavLastIds[layer] != 0)
+    if (window->NavLastIds[layer] != 0) [[likely]]
     {
         SetNavID(window->NavLastIds[layer], layer, 0, window->NavRectRel[layer]);
     }
-    else
+    else [[unlikely]]
     {
         g.NavLayer = layer;
         NavInitWindow(window, true);
@@ -12191,7 +12191,7 @@ void ImGui::NavInitWindow(ImGuiWindow* window, bool force_reinit)
     if (window == window->RootWindow || (window->Flags & ImGuiWindowFlags_Popup) || (window->NavLastIds[0] == 0) || force_reinit)
         init_for_nav = true;
     IMGUI_DEBUG_LOG_NAV("[nav] NavInitRequest: from NavInitWindow(), init_for_nav=%d, window=\"%s\", layer=%d\n", init_for_nav, window->Name, g.NavLayer);
-    if (init_for_nav)
+    if (init_for_nav) [[likely]]
     {
         SetNavID(0, g.NavLayer, window->NavRootFocusScopeId, ImRect());
         g.NavInitRequest = true;
@@ -12199,7 +12199,7 @@ void ImGui::NavInitWindow(ImGuiWindow* window, bool force_reinit)
         g.NavInitResult.ID = 0;
         NavUpdateAnyRequestFlag();
     }
-    else
+    else [[unlikely]]
     {
         g.NavId = window->NavLastIds[0];
         SetNavFocusScope(window->NavRootFocusScopeId);
@@ -12619,9 +12619,9 @@ void ImGui::NavUpdateCreateTabbingRequest()
     // (this is ALWAYS ENABLED, regardless of ImGuiConfigFlags_NavEnableKeyboard flag!)
     // See NavProcessItemForTabbingRequest() for a description of the various forward/backward tabbing cases with and without wrapping.
     const bool nav_keyboard_active = (g.IO.ConfigFlags & ImGuiConfigFlags_NavEnableKeyboard) != 0;
-    if (nav_keyboard_active)
+    if (nav_keyboard_active) [[likely]]
         g.NavTabbingDir = g.IO.KeyShift ? -1 : (g.NavDisableHighlight == true && g.ActiveId == 0) ? 0 : +1;
-    else
+    else [[unlikely]]
         g.NavTabbingDir = g.IO.KeyShift ? -1 : (g.ActiveId == 0) ? 0 : +1;
     ImGuiNavMoveFlags move_flags = ImGuiNavMoveFlags_IsTabbing | ImGuiNavMoveFlags_Activate;
     ImGuiScrollFlags scroll_flags = window->Appearing ? ImGuiScrollFlags_KeepVisibleEdgeX | ImGuiScrollFlags_AlwaysCenterY : ImGuiScrollFlags_KeepVisibleEdgeX | ImGuiScrollFlags_KeepVisibleEdgeY;
@@ -13280,7 +13280,7 @@ bool ImGui::BeginDragDropSource(ImGuiDragDropFlags flags)
     if ((flags & ImGuiDragDropFlags_SourceExtern) == 0)
     {
         source_id = g.LastItemData.ID;
-        if (source_id != 0)
+        if (source_id != 0) [[likely]]
         {
             // Common path: items with ID
             if (g.ActiveId != source_id)
@@ -13291,7 +13291,7 @@ bool ImGui::BeginDragDropSource(ImGuiDragDropFlags flags)
                 return false;
             g.ActiveIdAllowOverlap = false;
         }
-        else
+        else [[unlikely]]
         {
             // Uncommon path: items without ID
             if (g.IO.MouseDown[mouse_button] == false || window->SkipItems)
@@ -14107,9 +14107,9 @@ static void* WindowSettingsHandler_ReadOpen(ImGuiContext*, ImGuiSettingsHandler*
 {
     ImGuiID id = ImHashStr(name);
     ImGuiWindowSettings* settings = ImGui::FindWindowSettingsByID(id);
-    if (settings)
+    if (settings) [[likely]]
         *settings = ImGuiWindowSettings(); // Clear existing if recycling previous entry
-    else
+    else [[unlikely]]
         settings = ImGui::CreateNewWindowSettings(name);
     settings->ID = id;
     settings->WantApply = true;
@@ -14418,14 +14418,14 @@ static bool PlatformOpenInShellFn_DefaultImpl(ImGuiContext*, const char* path)
     const char* args[] { "xdg-open", path, NULL };
 #endif
     pid_t pid = fork();
-    if (pid < 0)
+    if (pid < 0) [[unlikely]]
         return false;
-    if (!pid)
+    if (!pid) [[unlikely]]
     {
         execvp(args[0], const_cast<char **>(args));
         exit(-1);
     }
-    else
+    else [[likely]]
     {
         int status;
         waitpid(pid, &status, 0);
@@ -14627,9 +14627,9 @@ void ImGui::DebugTextEncoding(const char* str)
             Text("0x%02X", (int)(unsigned char)p[byte_index]);
         }
         TableNextColumn();
-        if (GetFont()->FindGlyphNoFallback((ImWchar)c))
+        if (GetFont()->FindGlyphNoFallback((ImWchar)c)) [[likely]]
             TextUnformatted(p, p + c_utf8_len);
-        else
+        else [[unlikely]]
             TextUnformatted((c == IM_UNICODE_CODEPOINT_INVALID) ? "[invalid]" : "[missing]");
         TableNextColumn();
         Text("U+%04X", (int)c);
@@ -15106,9 +15106,9 @@ void ImGui::ShowMetricsWindow(bool* p_open)
         Text("MOUSE STATE");
         {
             Indent();
-            if (IsMousePosValid())
+            if (IsMousePosValid()) [[likely]]
                 Text("Mouse pos: (%g, %g)", io.MousePos.x, io.MousePos.y);
-            else
+            else [[unlikely]]
                 Text("Mouse pos: <INVALID>");
             Text("Mouse delta: (%g, %g)", io.MouseDelta.x, io.MouseDelta.y);
             int count = IM_ARRAYSIZE(io.MouseDown);
