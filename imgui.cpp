@@ -1660,7 +1660,7 @@ void ImGuiIO::AddMouseButtonEvent(int mouse_button, bool down)
 {
     IM_ASSERT(Ctx != NULL);
     ImGuiContext& g = *Ctx;
-    IM_ASSERT(mouse_button >= 0 && mouse_button < ImGuiMouseButton_COUNT);
+    IM_ASSERT(mouse_button >= 0 && mouse_button < (int)ImGuiMouseButton_COUNT);
     if (!AppAcceptingEvents)
         return;
 
@@ -3288,8 +3288,8 @@ static const ImGuiDataVarInfo GStyleVarInfo[] =
 
 const ImGuiDataVarInfo* ImGui::GetStyleVarInfo(ImGuiStyleVar idx)
 {
-    IM_ASSERT(idx >= 0 && idx < ImGuiStyleVar_COUNT);
-    IM_STATIC_ASSERT(IM_ARRAYSIZE(GStyleVarInfo) == ImGuiStyleVar_COUNT);
+    IM_ASSERT(idx >= 0 && (int)idx < (int)ImGuiStyleVar_COUNT);
+    IM_STATIC_ASSERT(IM_ARRAYSIZE(GStyleVarInfo) == (int)ImGuiStyleVar_COUNT);
     return &GStyleVarInfo[idx];
 }
 
@@ -3640,7 +3640,7 @@ void ImGui::RenderNavHighlight(const ImRect& bb, ImGuiID id, ImGuiNavHighlightFl
 void ImGui::RenderMouseCursor(ImVec2 base_pos, float base_scale, ImGuiMouseCursor mouse_cursor, ImU32 col_fill, ImU32 col_border, ImU32 col_shadow)
 {
     ImGuiContext& g = *GImGui;
-    IM_ASSERT(mouse_cursor > ImGuiMouseCursor_None && mouse_cursor < ImGuiMouseCursor_COUNT);
+    IM_ASSERT((int)mouse_cursor > (int)ImGuiMouseCursor_None && (int)mouse_cursor < (int)ImGuiMouseCursor_COUNT);
     for (ImFontAtlas* font_atlas = g.DrawListSharedData.Font->ContainerAtlas; ImGuiViewportP* viewport : g.Viewports)
     {
         // We scale cursor with current viewport/monitor, however Windows 10 for its own hardware cursor seems to be using a different scale factor.
@@ -10344,7 +10344,7 @@ void ImGui::ItemSize(const ImVec2& size, float text_baseline_y)
     // We increase the height in this function to accommodate for baseline offset.
     // In theory we should be offsetting the starting position (window->DC.CursorPos), that will be the topic of a larger refactor,
     // but since ItemSize() is not yet an API that moves the cursor (to handle e.g. wrapping) enlarging the height has the same effect.
-    const float offset_to_match_baseline_y = (text_baseline_y >= 0) ? ImMax(0.0f, window->DC.CurrLineTextBaseOffset - text_baseline_y) : 0.0f;
+    const float offset_to_match_baseline_y = (text_baseline_y >= 0.0f) ? ImMax(0.0f, window->DC.CurrLineTextBaseOffset - text_baseline_y) : 0.0f;
 
     const float line_y1 = window->DC.IsSameLine ? window->DC.CursorPosPrevLine.y : window->DC.CursorPos.y;
     const float line_height = ImMax(window->DC.CurrLineSize.y, /*ImMax(*/window->DC.CursorPos.y - line_y1/*, 0.0f)*/ + size.y + offset_to_match_baseline_y);
@@ -14812,7 +14812,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
         {
             BulletText("'%s':", g.NavWindow->Name);
             Indent();
-            for (auto rect_n = 0; rect_n < WRT_Count; rect_n++)
+            for (auto rect_n = 0; rect_n < (int)WRT_Count; rect_n++)
             {
                 ImRect r = Funcs::GetWindowRect(g.NavWindow, rect_n);
                 Text("(%6.1f,%6.1f) (%6.1f,%6.1f) Size (%6.1f,%6.1f) %s", r.Min.x, r.Min.y, r.Max.x, r.Max.y, r.GetWidth(), r.GetHeight(), wrt_rects_names[rect_n]);
@@ -14837,11 +14837,11 @@ void ImGui::ShowMetricsWindow(bool* p_open)
                     GetForegroundDrawList()->AddRect(table->OuterRect.Min - ImVec2(1, 1), table->OuterRect.Max + ImVec2(1, 1), IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
                 Indent();
                 char buf[128];
-                for (auto rect_n = 0; rect_n < TRT_Count; rect_n++)
+                for (auto rect_n = 0; rect_n < (int)TRT_Count; rect_n++)
                 {
-                    if (rect_n >= TRT_ColumnsRect)
+                    if (rect_n >= (int)TRT_ColumnsRect)
                     {
-                        if (rect_n != TRT_ColumnsRect && rect_n != TRT_ColumnsClipRect)
+                        if (rect_n != (int)TRT_ColumnsRect && rect_n != (int)TRT_ColumnsClipRect)
                             continue;
                         for (auto column_n = 0; column_n < table->ColumnsCount; column_n++)
                         {
@@ -15259,7 +15259,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
             if (table == NULL || table->LastFrameActive < g.FrameCount - 1)
                 continue;
             ImDrawList* draw_list = GetForegroundDrawList(table->OuterWindow);
-            if (cfg->ShowTablesRectsType >= TRT_ColumnsRect)
+            if (cfg->ShowTablesRectsType >= (int)TRT_ColumnsRect)
             {
                 for (auto column_n = 0; column_n < table->ColumnsCount; column_n++)
                 {
@@ -15711,7 +15711,7 @@ void ImGui::DebugNodeWindow(ImGuiWindow* window, const char* label)
     BulletText("Scroll: (%.2f/%.2f,%.2f/%.2f) Scrollbar:%s%s", window->Scroll.x, window->ScrollMax.x, window->Scroll.y, window->ScrollMax.y, window->ScrollbarX ? "X" : "", window->ScrollbarY ? "Y" : "");
     BulletText("Active: %d/%d, WriteAccessed: %d, BeginOrderWithinContext: %d", window->Active, window->WasActive, window->WriteAccessed, (window->Active || window->WasActive) ? window->BeginOrderWithinContext : -1);
     BulletText("Appearing: %d, Hidden: %d (CanSkip %d Cannot %d), SkipItems: %d", window->Appearing, window->Hidden, window->HiddenFramesCanSkipItems, window->HiddenFramesCannotSkipItems, window->SkipItems);
-    for (auto layer = 0; layer < ImGuiNavLayer_COUNT; layer++)
+    for (auto layer = 0; layer < (int)ImGuiNavLayer_COUNT; layer++)
     {
         ImRect r = window->NavRectRel[layer];
         if (r.Min.x >= r.Max.y && r.Min.y >= r.Max.y)
@@ -15721,7 +15721,7 @@ void ImGui::DebugNodeWindow(ImGuiWindow* window, const char* label)
         DebugLocateItemOnHover(window->NavLastIds[layer]);
     }
     const ImVec2* pr = window->NavPreferredScoringPosRel;
-    for (auto layer = 0; layer < ImGuiNavLayer_COUNT; layer++)
+    for (auto layer = 0; layer < (int)ImGuiNavLayer_COUNT; layer++)
         BulletText("NavPreferredScoringPosRel[%d] = {%.1f,%.1f)", layer, (pr[layer].x == FLT_MAX ? -99999.0f : pr[layer].x), (pr[layer].y == FLT_MAX ? -99999.0f : pr[layer].y)); // Display as 99999.0f so it looks neater.
     BulletText("NavLayersActiveMask: %X, NavLastChildNavWindow: %s", window->DC.NavLayersActiveMask, window->NavLastChildNavWindow ? window->NavLastChildNavWindow->Name : "NULL");
     if (window->RootWindow != window)               { DebugNodeWindow(window->RootWindow, "RootWindow"); }

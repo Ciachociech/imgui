@@ -2173,7 +2173,7 @@ IM_STATIC_ASSERT(IM_ARRAYSIZE(GDataTypeInfo) == ImGuiDataType_COUNT);
 
 const ImGuiDataTypeInfo* ImGui::DataTypeGetInfo(ImGuiDataType data_type)
 {
-    IM_ASSERT(data_type >= 0 && data_type < ImGuiDataType_COUNT);
+    IM_ASSERT(data_type >= 0 && (int)data_type < (int)ImGuiDataType_COUNT);
     return &GDataTypeInfo[data_type];
 }
 
@@ -3016,7 +3016,7 @@ bool ImGui::SliderBehaviorT(const ImRect& bb, ImGuiID id, ImGuiDataType data_typ
                 }
                 if (slider_usable_sz > 0.0f)
                     clicked_t = ImSaturate((mouse_abs_pos - g.SliderGrabClickOffset - slider_usable_pos_min) / slider_usable_sz);
-                if (axis == ImGuiAxis_Y)
+                if ((int)axis == (int)ImGuiAxis_Y)
                     clicked_t = 1.0f - clicked_t;
                 set_new_value = true;
             }

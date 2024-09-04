@@ -2671,7 +2671,7 @@ void ImFontAtlas::CalcCustomRectUV(const ImFontAtlasCustomRect* rect, ImVec2* ou
 
 bool ImFontAtlas::GetMouseCursorTexData(ImGuiMouseCursor cursor_type, ImVec2* out_offset, ImVec2* out_size, ImVec2 out_uv_border[2], ImVec2 out_uv_fill[2])
 {
-    if (cursor_type <= ImGuiMouseCursor_None || cursor_type >= ImGuiMouseCursor_COUNT)
+    if ((int)cursor_type <= (int)ImGuiMouseCursor_None || (int)cursor_type >= (int)ImGuiMouseCursor_COUNT)
         return false;
     if (Flags & ImFontAtlasFlags_NoMouseCursors)
         return false;
