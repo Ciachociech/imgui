@@ -3016,7 +3016,7 @@ bool ImGui::SliderBehaviorT(const ImRect& bb, ImGuiID id, ImGuiDataType data_typ
                 }
                 if (slider_usable_sz > 0.0f)
                     clicked_t = ImSaturate((mouse_abs_pos - g.SliderGrabClickOffset - slider_usable_pos_min) / slider_usable_sz);
-                if ((int)axis == (int)ImGuiAxis_Y)
+                if (axis == ImGuiAxis_Y)
                     clicked_t = 1.0f - clicked_t;
                 set_new_value = true;
             }
@@ -4115,7 +4115,7 @@ static bool InputTextFilterCharacter(ImGuiContext* ctx, unsigned int* p_char, Im
         apply_named_filters = false; // Override named filters below so newline and tabs can still be inserted.
     }
 
-    if (input_source_is_clipboard == false)
+    if (!input_source_is_clipboard)
     {
         // We ignore Ascii representation of delete (emitted from Backspace on OSX, see #2578, #2817)
         if (c == 127)
@@ -7070,7 +7070,7 @@ ImGuiTypingSelectRequest* ImGui::GetTypingSelectRequest(ImGuiTypingSelectFlags f
 static int ImStrimatchlen(const char* s1, const char* s1_end, const char* s2)
 {
     int match_len = 0;
-    [[assume(match_len == 0)]];
+    [[assume(match_len >= 0)]];
     while (s1 < s1_end && ImToUpper(*s1++) == ImToUpper(*s2++))
         match_len++;
     return match_len;
@@ -7244,7 +7244,7 @@ bool ImGui::BeginBoxSelect(ImGuiWindow* window, ImGuiID box_select_id, ImGuiMult
     bs->RequestClear = false;
     if (bs->IsStarting && IsMouseDragPastThreshold(0))
         BoxSelectActivateDrag(bs, window);
-    else if ((bs->IsStarting || bs->IsActive) && g.IO.MouseDown[0] == false)
+    else if ((bs->IsStarting || bs->IsActive) && !g.IO.MouseDown[0])
         BoxSelectDeactivateDrag(bs);
     if (!bs->IsActive)
         return false;
@@ -7465,12 +7465,12 @@ ImGuiMultiSelectIO* ImGui::EndMultiSelect()
     if (ms->IsFocused)
     {
         // We currently don't allow user code to modify RangeSrcItem by writing to BeginIO's version, but that would be an easy change here.
-        if (ms->IO.RangeSrcReset || (ms->RangeSrcPassedBy == false && ms->IO.RangeSrcItem != ImGuiSelectionUserData_Invalid)) // Can't read storage->RangeSrcItem here -> we want the state at begining of the scope (see tests for easy failure)
+        if (ms->IO.RangeSrcReset || (!(ms->RangeSrcPassedBy) && ms->IO.RangeSrcItem != ImGuiSelectionUserData_Invalid)) // Can't read storage->RangeSrcItem here -> we want the state at begining of the scope (see tests for easy failure)
         {
             IMGUI_DEBUG_LOG_SELECTION("[selection] EndMultiSelect: Reset RangeSrcItem.\n"); // Will set be to NavId.
             storage->RangeSrcItem = ImGuiSelectionUserData_Invalid;
         }
-        if (ms->NavIdPassedBy == false && storage->NavIdItem != ImGuiSelectionUserData_Invalid)
+        if (!(ms->NavIdPassedBy) && storage->NavIdItem != ImGuiSelectionUserData_Invalid)
         {
             IMGUI_DEBUG_LOG_SELECTION("[selection] EndMultiSelect: Reset NavIdItem.\n");
             storage->NavIdItem = ImGuiSelectionUserData_Invalid;
@@ -7481,7 +7481,7 @@ ImGuiMultiSelectIO* ImGui::EndMultiSelect()
             EndBoxSelect(scope_rect, ms->Flags);
     }
 
-    if (ms->IsEndIO == false)
+    if (!(ms->IsEndIO))
         ms->IO.Requests.resize(0);
 
     // Clear selection when clicking void?
@@ -7505,7 +7505,7 @@ ImGuiMultiSelectIO* ImGui::EndMultiSelect()
         }
 
         if (ms->Flags & ImGuiMultiSelectFlags_ClearOnClickVoid)
-            if (IsMouseReleased(0) && IsMouseDragPastThreshold(0) == false && g.IO.KeyMods == ImGuiMod_None)
+            if (IsMouseReleased(0) && !(IsMouseDragPastThreshold(0)) && g.IO.KeyMods == ImGuiMod_None)
                 MultiSelectAddSetAll(ms, false);
     }
 
@@ -7578,7 +7578,7 @@ void ImGui::MultiSelectItemHeader(ImGuiID id, bool* p_selected, ImGuiButtonFlags
         if (ms->IsKeyboardSetRange)
         {
             IM_ASSERT(id != 0 && (ms->KeyMods & ImGuiMod_Shift) != 0);
-            const bool is_range_dst = (ms->RangeDstPassedBy == false) && g.NavJustMovedToId == id;     // Assume that g.NavJustMovedToId is not clipped.
+            const bool is_range_dst = !(ms->RangeDstPassedBy) && g.NavJustMovedToId == id;     // Assume that g.NavJustMovedToId is not clipped.
             if (is_range_dst)
                 ms->RangeDstPassedBy = true;
             if (is_range_dst && storage->RangeSrcItem == ImGuiSelectionUserData_Invalid) // If we don't have RangeSrc, assign RangeSrc = RangeDst
@@ -7653,7 +7653,7 @@ void ImGui::MultiSelectItemFooter(ImGuiID id, bool* p_selected, bool* p_pressed)
 
     if (g.NavId == id && storage->RangeSrcItem == ImGuiSelectionUserData_Invalid)
         apply_to_range_src = true;
-    if (ms->IsEndIO == false)
+    if (!(ms->IsEndIO))
     {
         ms->IO.Requests.resize(0);
         ms->IsEndIO = true;
@@ -7731,7 +7731,7 @@ void ImGui::MultiSelectItemFooter(ImGuiID id, bool* p_selected, bool* p_pressed)
         // Box-select
         ImGuiInputSource input_source = (g.NavJustMovedToId == id || g.NavActivateId == id) ? g.NavInputSource : ImGuiInputSource_Mouse;
         if (flags & (ImGuiMultiSelectFlags_BoxSelect1d | ImGuiMultiSelectFlags_BoxSelect2d))
-            if (selected == false && !g.BoxSelectState.IsActive && !g.BoxSelectState.IsStarting && input_source == ImGuiInputSource_Mouse && g.IO.MouseClickedCount[0] == 1)
+            if (!selected && !g.BoxSelectState.IsActive && !g.BoxSelectState.IsStarting && input_source == ImGuiInputSource_Mouse && g.IO.MouseClickedCount[0] == 1)
                 BoxSelectPreStartDrag(ms->BoxSelectId, item_data);
 
         //----------------------------------------------------------------------------------------
@@ -9339,7 +9339,7 @@ static void ImGui::TabBarLayout(ImGuiTabBar* tab_bar)
     tab_bar->TabsNames.Buf.resize(0);
 
     // If we have lost the selected tab, select the next most recently active one
-    if (found_selected_tab_id == false)
+    if (!found_selected_tab_id)
         tab_bar->SelectedTabId = 0;
     if (tab_bar->SelectedTabId == 0 && tab_bar->NextSelectedTabId == 0 && most_recently_selected_tab)
         scroll_to_tab_id = tab_bar->SelectedTabId = most_recently_selected_tab->ID;
@@ -9721,7 +9721,7 @@ bool    ImGui::BeginTabItem(const char* label, bool* p_open, ImGuiTabItemFlags f
         return false;
 
     ImGuiTabBar* tab_bar = g.CurrentTabBar;
-    if (tab_bar == NULL)
+    if (!tab_bar)
     {
         IM_ASSERT_USER_ERROR(tab_bar, "Needs to be called between BeginTabBar() and EndTabBar()!");
         return false;
@@ -9745,7 +9745,7 @@ void    ImGui::EndTabItem()
         return;
 
     ImGuiTabBar* tab_bar = g.CurrentTabBar;
-    if (tab_bar == NULL)
+    if (!tab_bar)
     {
         IM_ASSERT_USER_ERROR(tab_bar, "Needs to be called between BeginTabBar() and EndTabBar()!");
         return;
@@ -9764,7 +9764,7 @@ bool    ImGui::TabItemButton(const char* label, ImGuiTabItemFlags flags)
         return false;
 
     ImGuiTabBar* tab_bar = g.CurrentTabBar;
-    if (tab_bar == NULL)
+    if (!tab_bar)
     {
         IM_ASSERT_USER_ERROR(tab_bar, "Needs to be called between BeginTabBar() and EndTabBar()!");
         return false;
@@ -9804,13 +9804,13 @@ bool    ImGui::TabItemEx(ImGuiTabBar* tab_bar, const char* label, bool* p_open, 
     // Store into ImGuiTabItemFlags_NoCloseButton, also honor ImGuiTabItemFlags_NoCloseButton passed by user (although not documented)
     if (flags & ImGuiTabItemFlags_NoCloseButton)
         p_open = NULL;
-    else if (p_open == NULL)
+    else if (!p_open)
         flags |= ImGuiTabItemFlags_NoCloseButton;
 
     // Acquire tab data
     ImGuiTabItem* tab = TabBarFindTabByID(tab_bar, id);
     bool tab_is_new = false;
-    if (tab == NULL)
+    if (!tab)
     {
         tab_bar->Tabs.push_back(ImGuiTabItem());
         tab = &tab_bar->Tabs.back();
@@ -9840,7 +9840,7 @@ bool    ImGui::TabItemEx(ImGuiTabBar* tab_bar, const char* label, bool* p_open, 
     // Append name _WITH_ the zero-terminator
     if (docked_window) [[unlikely]]
     {
-        IM_ASSERT(docked_window == NULL); // master branch only
+        IM_ASSERT(!docked_window); // master branch only
     }
     else [[likely]]
     {
