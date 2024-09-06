@@ -1333,7 +1333,7 @@ ImGuiIO::ImGuiIO()
 {
     // Most fields are initialized with zero
     memset(this, 0, sizeof(*this));
-    IM_STATIC_ASSERT(IM_ARRAYSIZE(ImGuiIO::MouseDown) == (int)ImGuiMouseButton_COUNT && IM_ARRAYSIZE(ImGuiIO::MouseClicked) == (int)ImGuiMouseButton_COUNT);
+    IM_STATIC_ASSERT(IM_ARRAYSIZE(ImGuiIO::MouseDown) == ImGuiMouseButton_COUNT && IM_ARRAYSIZE(ImGuiIO::MouseClicked) == ImGuiMouseButton_COUNT);
 
     // Settings
     ConfigFlags = ImGuiConfigFlags_None;
