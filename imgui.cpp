@@ -1660,7 +1660,7 @@ void ImGuiIO::AddMouseButtonEvent(int mouse_button, bool down)
 {
     IM_ASSERT(Ctx);
     ImGuiContext& g = *Ctx;
-    IM_ASSERT(mouse_button >= 0 && mouse_button < (int)ImGuiMouseButton_COUNT);
+    IM_ASSERT(mouse_button >= 0 && mouse_button < ImGuiMouseButton_COUNT);
     if (!AppAcceptingEvents)
         return;
 
