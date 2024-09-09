@@ -3297,7 +3297,7 @@ void ImGui::PushStyleVar(ImGuiStyleVar idx, float val)
 {
     ImGuiContext& g = *GImGui;
     const ImGuiDataVarInfo* var_info = GetStyleVarInfo(idx);
-    if ((int)(var_info->Type) == (int)ImGuiDataType_Float && var_info->Count == 1)
+    if (var_info->Type == ImGuiDataType_Float && var_info->Count == 1)
     {
         float* pvar = (float*)var_info->GetVarPtr(&g.Style);
         g.StyleVarStack.push_back(ImGuiStyleMod(idx, *pvar));
@@ -3311,7 +3311,7 @@ void ImGui::PushStyleVar(ImGuiStyleVar idx, const ImVec2& val)
 {
     ImGuiContext& g = *GImGui;
     const ImGuiDataVarInfo* var_info = GetStyleVarInfo(idx);
-    if ((int)(var_info->Type) == (int)ImGuiDataType_Float && var_info->Count == 2)
+    if (var_info->Type == ImGuiDataType_Float && var_info->Count == 2)
     {
         ImVec2* pvar = (ImVec2*)var_info->GetVarPtr(&g.Style);
         g.StyleVarStack.push_back(ImGuiStyleMod(idx, *pvar));
@@ -3336,8 +3336,8 @@ void ImGui::PopStyleVar(int count)
         ImGuiStyleMod& backup = g.StyleVarStack.back();
         const ImGuiDataVarInfo* info = GetStyleVarInfo(backup.VarIdx);
         void* data = info->GetVarPtr(&g.Style);
-        if ((int)(info->Type) == (int)ImGuiDataType_Float && info->Count == 1)      { ((float*)data)[0] = backup.BackupFloat[0]; }
-        else if ((int)(info->Type) == (int)ImGuiDataType_Float && info->Count == 2) { ((float*)data)[0] = backup.BackupFloat[0]; ((float*)data)[1] = backup.BackupFloat[1]; }
+        if (info->Type == ImGuiDataType_Float && info->Count == 1)      { ((float*)data)[0] = backup.BackupFloat[0]; }
+        else if (info->Type == ImGuiDataType_Float && info->Count == 2) { ((float*)data)[0] = backup.BackupFloat[0]; ((float*)data)[1] = backup.BackupFloat[1]; }
         g.StyleVarStack.pop_back();
         count--;
     }
@@ -3640,7 +3640,7 @@ void ImGui::RenderNavHighlight(const ImRect& bb, ImGuiID id, ImGuiNavHighlightFl
 void ImGui::RenderMouseCursor(ImVec2 base_pos, float base_scale, ImGuiMouseCursor mouse_cursor, ImU32 col_fill, ImU32 col_border, ImU32 col_shadow)
 {
     ImGuiContext& g = *GImGui;
-    IM_ASSERT((int)mouse_cursor > (int)ImGuiMouseCursor_None && (int)mouse_cursor < (int)ImGuiMouseCursor_COUNT);
+    IM_ASSERT(mouse_cursor > ImGuiMouseCursor_None && mouse_cursor < ImGuiMouseCursor_COUNT);
     for (ImFontAtlas* font_atlas = g.DrawListSharedData.Font->ContainerAtlas; ImGuiViewportP* viewport : g.Viewports)
     {
         // We scale cursor with current viewport/monitor, however Windows 10 for its own hardware cursor seems to be using a different scale factor.
@@ -4720,7 +4720,7 @@ void ImGui::NewFrame()
     // Remove pending delete hooks before frame start.
     // This deferred removal avoid issues of removal while iterating the hook vector
     for (auto n = g.Hooks.Size - 1; n >= 0; n--)
-        if ((int)(g.Hooks[n].Type) == (int)ImGuiContextHookType_PendingRemoval_)
+        if (g.Hooks[n].Type == ImGuiContextHookType_PendingRemoval_)
             g.Hooks.erase(&g.Hooks[n]);
 
     CallContextHooks(&g, ImGuiContextHookType_NewFramePre);
@@ -6596,7 +6596,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         IM_DEBUG_BREAK();
 
     // Automatically disable manual moving/resizing when NoInputs is set
-    if ((int)(flags & ImGuiWindowFlags_NoInputs) == (int)ImGuiWindowFlags_NoInputs)
+    if ((flags & ImGuiWindowFlags_NoInputs) == ImGuiWindowFlags_NoInputs)
         flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 
     const int current_frame = g.FrameCount;

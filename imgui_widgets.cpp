@@ -2173,7 +2173,7 @@ IM_STATIC_ASSERT(IM_ARRAYSIZE(GDataTypeInfo) == ImGuiDataType_COUNT);
 
 const ImGuiDataTypeInfo* ImGui::DataTypeGetInfo(ImGuiDataType data_type)
 {
-    IM_ASSERT(data_type >= 0 && (int)data_type < (int)ImGuiDataType_COUNT);
+    IM_ASSERT(data_type >= 0 && data_type < ImGuiDataType_COUNT);
     return &GDataTypeInfo[data_type];
 }
 
