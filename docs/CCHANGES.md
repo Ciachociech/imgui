@@ -8,14 +8,14 @@ C++23 changes:
         [N] - mixed string literal concatenation (P2201R1)
         [N] - deducing this (P0847R7)
         [N] - auto(x)/auto{x} (P0849R8)
-        [X] - change scope of lambda trailing-return-type (P2036R3)
+        [N] - change scope of lambda trailing-return-type (P2036R3)
         [D] - #elifdef and #elifndef (P2334R1)
         [N] - attributes on lambdas (P2173R1)
         [N] - remove non-encodable wide character... (P2362R3)
         [N] - labels at the end of compound statements (P2324R2)
         [D] - simpler implicit move (P2266R3)
         [N] - permitting static constexpr vars in constexpr functions (P2647R1)
-        [X] - extending the lifetime of temporaries... (P2718R0)
+        [B] - extending the lifetime of temporaries... (P2718R0)
     Library features:
         [N] - stacktrace library (P0881R7, P2301R1)
         [N] - std::unreachable (P0627R6)
@@ -31,7 +31,12 @@ C++20 changes:
         [N] - lambdas in unevaluated contexts (P0315R4)
         [D] - init-statements for range-based for (R0614R1)
         [?] - adl and function templates that are not visible (P0846R0)
-        [] - attributes likely/unlikely (P0479R6)
+        [D] - attributes likely/unlikely (P0479R5)
+        [?] - no_unique_address (P0840R2)
+        [N] - allow structured bindings to accessible members (P0969R0)
+        [N] - class types in non-type template parameters (P0732R2)
+        [N] - prohibit aggregates with user-declared constructors (P1008R1)
+        [E] - consistency improvements for comparisions (P1120R0)
 
 Older standards:
 [E] - auto types in for loops
@@ -41,4 +46,3 @@ D - done
 E - edit in progress
 N - not applicable
 P - planned
-X - not supported
