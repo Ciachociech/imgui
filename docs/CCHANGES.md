@@ -36,7 +36,15 @@ C++20 changes:
         [N] - allow structured bindings to accessible members (P0969R0)
         [N] - class types in non-type template parameters (P0732R2)
         [N] - prohibit aggregates with user-declared constructors (P1008R1)
-        [E] - consistency improvements for comparisions (P1120R0)
+        [D] - consistency improvements for comparisions (P1120R0)
+        [N] - coroutines (P0912R5)
+        [N] - modules (P1103R3)
+        [N] - permit conversions to arrays of unknown bound (P0388R4)
+        [N] - constinit (P1143R2)
+        [N] - deprecate comma operator in subscripts (P1161R3)
+        [N] - using enum (P1099R5)
+    Library features:
+        [] - fixing operator>> (P0487R1)
 
 Older standards:
 [E] - auto types in for loops
