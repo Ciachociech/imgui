@@ -49,6 +49,10 @@ C++20 changes:
 C++17 changes:
     Language features:
         [D] - static_assert with no message (N3928)
+        
+C++14 changes:
+    Language features:
+        [D] - [[deprecated]] attribute (N3760)
 
 Older standards:
 [E] - auto types in for loops

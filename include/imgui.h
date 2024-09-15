@@ -1090,8 +1090,8 @@ enum ImGuiWindowFlags_
 
     // Obsolete names
 #ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-    ImGuiWindowFlags_AlwaysUseWindowPadding = 1 << 30,  // Obsoleted in 1.90.0: Use ImGuiChildFlags_AlwaysUseWindowPadding in BeginChild() call.
-    ImGuiWindowFlags_NavFlattened           = 1 << 31,  // Obsoleted in 1.90.9: Use ImGuiChildFlags_NavFlattened in BeginChild() call.
+    ImGuiWindowFlags_AlwaysUseWindowPadding [[deprecated("Obsoleted in 1.90.0: Use ImGuiChildFlags_AlwaysUseWindowPadding in BeginChild() call.")]] = 1 << 30,
+    ImGuiWindowFlags_NavFlattened [[deprecated("Obsoleted in 1.90.9: Use ImGuiChildFlags_NavFlattened in BeginChild() call.")]]           = 1 << 31,
 #endif
 };
 
@@ -1569,9 +1569,9 @@ enum ImGuiInputFlags_
 };
 
 #ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
-// OBSOLETED in 1.88 (from July 2022): ImGuiNavInput and io.NavInputs[].
 // Official backends between 1.60 and 1.86: will keep working and feed gamepad inputs as long as IMGUI_DISABLE_OBSOLETE_KEYIO is not set.
 // Custom backends: feed gamepad inputs via io.AddKeyEvent() and ImGuiKey_GamepadXXX enums.
+[[deprecated("OBSOLETED in 1.88 (from July 2022): ImGuiNavInput and io.NavInputs[]")]]
 enum ImGuiNavInput
 {
     ImGuiNavInput_Activate, ImGuiNavInput_Cancel, ImGuiNavInput_Input, ImGuiNavInput_Menu, ImGuiNavInput_DpadLeft, ImGuiNavInput_DpadRight, ImGuiNavInput_DpadUp, ImGuiNavInput_DpadDown,
@@ -2324,7 +2324,8 @@ struct ImGuiIO
     IMGUI_API void  ClearInputKeys();                                       // Clear current keyboard/gamepad state + current frame text input buffer. Equivalent to releasing all keys/buttons.
     IMGUI_API void  ClearInputMouse();                                      // Clear current mouse state.
 #ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-    IMGUI_API void  ClearInputCharacters();                                 // [Obsoleted in 1.89.8] Clear the current frame text input buffer. Now included within ClearInputKeys().
+    [[deprecated("Obsoleted in 1.89.8")]]
+    IMGUI_API void  ClearInputCharacters();                                 // Clear the current frame text input buffer. Now included within ClearInputKeys().
 #endif
 
     //------------------------------------------------------------------
@@ -3499,27 +3500,35 @@ struct ImGuiPlatformImeData
 #ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 namespace ImGui
 {
-    // OBSOLETED in 1.91.0 (from July 2024)
+    [[deprecated("OBSOLETED in 1.91.0 (from July 2024)")]]
     static inline void  PushButtonRepeat(bool repeat)                           { PushItemFlag(ImGuiItemFlags_ButtonRepeat, repeat); }
+    [[deprecated("OBSOLETED in 1.91.0 (from July 2024)")]]
     static inline void  PopButtonRepeat()                                       { PopItemFlag(); }
+    [[deprecated("OBSOLETED in 1.91.0 (from July 2024)")]]
     static inline void  PushTabStop(bool tab_stop)                              { PushItemFlag(ImGuiItemFlags_NoTabStop, !tab_stop); }
+    [[deprecated("OBSOLETED in 1.91.0 (from July 2024)")]]
     static inline void  PopTabStop()                                            { PopItemFlag(); }
-    // OBSOLETED in 1.90.0 (from September 2023)
+    [[deprecated("OBSOLETED in 1.90.0 (from September 2023)")]]
     static inline bool  BeginChildFrame(ImGuiID id, const ImVec2& size, ImGuiWindowFlags window_flags = 0)  { return BeginChild(id, size, ImGuiChildFlags_FrameStyle, window_flags); }
+    [[deprecated("OBSOLETED in 1.90.0 (from September 2023)")]]
     static inline void  EndChildFrame()                                                                     { EndChild(); }
     //static inline bool BeginChild(const char* str_id, const ImVec2& size_arg, bool border, ImGuiWindowFlags window_flags){ return BeginChild(str_id, size_arg, border ? ImGuiChildFlags_Border : ImGuiChildFlags_None, window_flags); } // Unnecessary as true == ImGuiChildFlags_Border
     //static inline bool BeginChild(ImGuiID id, const ImVec2& size_arg, bool border, ImGuiWindowFlags window_flags)        { return BeginChild(id, size_arg, border ? ImGuiChildFlags_Border : ImGuiChildFlags_None, window_flags);     } // Unnecessary as true == ImGuiChildFlags_Border
+    [[deprecated("OBSOLETED in 1.90.0 (from September 2023)")]]
     static inline void  ShowStackToolWindow(bool* p_open = NULL)                { ShowIDStackToolWindow(p_open); }
+    [[deprecated("OBSOLETED in 1.90.0 (from September 2023)")]]
     IMGUI_API bool      Combo(const char* label, int* current_item, bool (*old_callback)(void* user_data, int idx, const char** out_text), void* user_data, int items_count, int popup_max_height_in_items = -1);
+    [[deprecated("OBSOLETED in 1.90.0 (from September 2023)")]]
     IMGUI_API bool      ListBox(const char* label, int* current_item, bool (*old_callback)(void* user_data, int idx, const char** out_text), void* user_data, int items_count, int height_in_items = -1);
-    // OBSOLETED in 1.89.7 (from June 2023)
+    [[deprecated("OBSOLETED in 1.89.7 (from June 2023)")]]
     IMGUI_API void      SetItemAllowOverlap();                                  // Use SetNextItemAllowOverlap() before item.
-    // OBSOLETED in 1.89.4 (from March 2023)
+    [[deprecated("OBSOLETED in 1.89.4 (from March 2023)")]]
     static inline void  PushAllowKeyboardFocus(bool tab_stop)                   { PushItemFlag(ImGuiItemFlags_NoTabStop, !tab_stop); }
+    [[deprecated("OBSOLETED in 1.89.4 (from March 2023)")]]
     static inline void  PopAllowKeyboardFocus()                                 { PopItemFlag(); }
-    // OBSOLETED in 1.89 (from August 2022)
+    [[deprecated("OBSOLETED in 1.89 (from August 2022)")]]
     IMGUI_API bool      ImageButton(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), int frame_padding = -1, const ImVec4& bg_col = ImVec4(0, 0, 0, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1)); // Use new ImageButton() signature (explicit item id, regular FramePadding)
-    // OBSOLETED in 1.87 (from February 2022 but more formally obsoleted April 2024)
+    [[deprecated("OBSOLETED in 1.87 (from February 2022 but more formally obsoleted April 2024)")]]
     IMGUI_API ImGuiKey  GetKeyIndex(ImGuiKey key);                              // Map ImGuiKey_* values into legacy native key index. == io.KeyMap[key]. When using a 1.87+ backend using io.AddKeyEvent(), calling GetKeyIndex() with ANY ImGuiKey_XXXX values will return the same value!
     //static inline ImGuiKey GetKeyIndex(ImGuiKey key)                          { IM_ASSERT(key >= ImGuiKey_NamedKey_BEGIN && key < ImGuiKey_NamedKey_END); return key; }
 
@@ -3604,7 +3613,7 @@ namespace ImGui
 //typedef ImGuiKeyChord ImGuiKeyModFlags; // == int
 //enum ImGuiKeyModFlags_ { ImGuiKeyModFlags_None = 0, ImGuiKeyModFlags_Ctrl = ImGuiMod_Ctrl, ImGuiKeyModFlags_Shift = ImGuiMod_Shift, ImGuiKeyModFlags_Alt = ImGuiMod_Alt, ImGuiKeyModFlags_Super = ImGuiMod_Super };
 
-#define IM_OFFSETOF(_TYPE,_MEMBER)  offsetof(_TYPE, _MEMBER)    // OBSOLETED IN 1.90 (now using C++11 standard version)
+#define IM_OFFSETOF(_TYPE,_MEMBER)  offsetof(_TYPE, _MEMBER) [[deprecated("OBSOLETED IN 1.90 (now using C++11 standard version)")]]
 
 #endif // #ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 
