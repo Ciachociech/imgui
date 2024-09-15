@@ -1571,7 +1571,7 @@ enum ImGuiInputFlags_
 #ifndef IMGUI_DISABLE_OBSOLETE_KEYIO
 // Official backends between 1.60 and 1.86: will keep working and feed gamepad inputs as long as IMGUI_DISABLE_OBSOLETE_KEYIO is not set.
 // Custom backends: feed gamepad inputs via io.AddKeyEvent() and ImGuiKey_GamepadXXX enums.
-[[deprecated("OBSOLETED in 1.88 (from July 2022): ImGuiNavInput and io.NavInputs[]")]]
+// [[deprecated("OBSOLETED in 1.88 (from July 2022): ImGuiNavInput and io.NavInputs[]")]] - attribute is ignored anyway
 enum ImGuiNavInput
 {
     ImGuiNavInput_Activate, ImGuiNavInput_Cancel, ImGuiNavInput_Input, ImGuiNavInput_Menu, ImGuiNavInput_DpadLeft, ImGuiNavInput_DpadRight, ImGuiNavInput_DpadUp, ImGuiNavInput_DpadDown,
