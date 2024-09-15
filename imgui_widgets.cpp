@@ -2169,7 +2169,7 @@ static const ImGuiDataTypeInfo GDataTypeInfo[] =
     { sizeof(double),           "double","%f",  "%lf"   },  // ImGuiDataType_Double
     { sizeof(bool),             "bool", "%d",   "%d"    },  // ImGuiDataType_Bool
 };
-IM_STATIC_ASSERT(IM_ARRAYSIZE(GDataTypeInfo) == ImGuiDataType_COUNT);
+static_assert(IM_ARRAYSIZE(GDataTypeInfo) == ImGuiDataType_COUNT);
 
 const ImGuiDataTypeInfo* ImGui::DataTypeGetInfo(ImGuiDataType data_type)
 {
@@ -7342,7 +7342,7 @@ ImGuiMultiSelectIO* ImGui::BeginMultiSelect(ImGuiMultiSelectFlags flags, int sel
     if (++g.MultiSelectTempDataStacked > g.MultiSelectTempData.Size)
         g.MultiSelectTempData.resize(g.MultiSelectTempDataStacked, ImGuiMultiSelectTempData());
     ImGuiMultiSelectTempData* ms = &g.MultiSelectTempData[g.MultiSelectTempDataStacked - 1];
-    IM_STATIC_ASSERT(!offsetof(ImGuiMultiSelectTempData, IO)); // Clear() relies on that.
+    static_assert(!offsetof(ImGuiMultiSelectTempData, IO)); // Clear() relies on that.
     g.CurrentMultiSelect = ms;
     if ((flags & (ImGuiMultiSelectFlags_ScopeWindow | ImGuiMultiSelectFlags_ScopeRect)) == 0)
         flags |= ImGuiMultiSelectFlags_ScopeWindow;

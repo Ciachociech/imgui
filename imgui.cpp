@@ -1333,7 +1333,7 @@ ImGuiIO::ImGuiIO()
 {
     // Most fields are initialized with zero
     memset(this, 0, sizeof(*this));
-    IM_STATIC_ASSERT(IM_ARRAYSIZE(ImGuiIO::MouseDown) == ImGuiMouseButton_COUNT && IM_ARRAYSIZE(ImGuiIO::MouseClicked) == ImGuiMouseButton_COUNT);
+    static_assert(IM_ARRAYSIZE(ImGuiIO::MouseDown) == ImGuiMouseButton_COUNT && IM_ARRAYSIZE(ImGuiIO::MouseClicked) == ImGuiMouseButton_COUNT);
 
     // Settings
     ConfigFlags = ImGuiConfigFlags_None;
@@ -3289,7 +3289,7 @@ static const ImGuiDataVarInfo GStyleVarInfo[] =
 const ImGuiDataVarInfo* ImGui::GetStyleVarInfo(ImGuiStyleVar idx)
 {
     IM_ASSERT(idx >= 0 && (int)idx < (int)ImGuiStyleVar_COUNT);
-    IM_STATIC_ASSERT(IM_ARRAYSIZE(GStyleVarInfo) == (int)ImGuiStyleVar_COUNT);
+    static_assert(IM_ARRAYSIZE(GStyleVarInfo) == (int)ImGuiStyleVar_COUNT);
     return &GStyleVarInfo[idx];
 }
 
@@ -8523,7 +8523,7 @@ static const char* const GKeyNames[] =
     "MouseLeft", "MouseRight", "MouseMiddle", "MouseX1", "MouseX2", "MouseWheelX", "MouseWheelY",
     "ModCtrl", "ModShift", "ModAlt", "ModSuper", // ReservedForModXXX are showing the ModXXX names.
 };
-IM_STATIC_ASSERT(ImGuiKey_NamedKey_COUNT == IM_ARRAYSIZE(GKeyNames));
+static_assert(ImGuiKey_NamedKey_COUNT == IM_ARRAYSIZE(GKeyNames));
 
 const char* ImGui::GetKeyName(ImGuiKey key)
 {

@@ -44,7 +44,11 @@ C++20 changes:
         [N] - deprecate comma operator in subscripts (P1161R3)
         [N] - using enum (P1099R5)
     Library features:
-        [] - fixing operator>> (P0487R1)
+        [N] - fixing operator>> (P0487R1)
+        
+C++17 changes:
+    Language features:
+        [D] - static_assert with no message (N3928)
 
 Older standards:
 [E] - auto types in for loops

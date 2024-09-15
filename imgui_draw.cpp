@@ -398,9 +398,9 @@ void ImDrawListSharedData::SetCircleTessellationMaxError(float max_error)
 void ImDrawList::_ResetForNewFrame()
 {
     // Verify that the ImDrawCmd fields we want to memcmp() are contiguous in memory.
-    IM_STATIC_ASSERT(!offsetof(ImDrawCmd, ClipRect));
-    IM_STATIC_ASSERT(offsetof(ImDrawCmd, TextureId) == sizeof(ImVec4));
-    IM_STATIC_ASSERT(offsetof(ImDrawCmd, VtxOffset) == sizeof(ImVec4) + sizeof(ImTextureID));
+    static_assert(!offsetof(ImDrawCmd, ClipRect));
+    static_assert(offsetof(ImDrawCmd, TextureId) == sizeof(ImVec4));
+    static_assert(offsetof(ImDrawCmd, VtxOffset) == sizeof(ImVec4) + sizeof(ImTextureID));
     if (_Splitter._Count > 1)
         _Splitter.Merge(this);
 
@@ -1357,7 +1357,7 @@ void ImDrawList::PathBezierQuadraticCurveTo(const ImVec2& p2, const ImVec2& p3, 
 static inline ImDrawFlags FixRectCornerFlags(ImDrawFlags flags)
 {
     /*
-    IM_STATIC_ASSERT(ImDrawFlags_RoundCornersTopLeft == (1 << 4));
+    static_assert(ImDrawFlags_RoundCornersTopLeft == (1 << 4));
 #ifndef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
     // Obsoleted in 1.82 (from February 2021). This code was stripped/simplified and mostly commented in 1.90 (from September 2023)
     // - Legacy Support for hard coded ~0 (used to be a suggested equivalent to ImDrawCornerFlags_All)
