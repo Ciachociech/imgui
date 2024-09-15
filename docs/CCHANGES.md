@@ -51,6 +51,9 @@ C++17 changes:
         [D] - static_assert with no message (N3928)
         [N] - remove deprecated operator++ for bool (P0002R1)
         [E] - init-statements for if and switch (P0305R1)
+    Library features:
+        [] - polymorphic memory resources (P0220R1)
+        [P] - mathematical special functions (P0226R1)
         
 C++14 changes:
     Language features:
