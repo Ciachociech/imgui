@@ -49,6 +49,8 @@ C++20 changes:
 C++17 changes:
     Language features:
         [D] - static_assert with no message (N3928)
+        [N] - remove deprecated operator++ for bool (P0002R1)
+        [E] - init-statements for if and switch (P0305R1)
         
 C++14 changes:
     Language features:
