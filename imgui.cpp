@@ -3869,9 +3869,8 @@ ImGuiID ImGui::AddContextHook(ImGuiContext* ctx, const ImGuiContextHook* hook)
 // Deferred removal, avoiding issue with changing vector while iterating it
 void ImGui::RemoveContextHook(ImGuiContext* ctx, ImGuiID hook_id)
 {
-    ImGuiContext& g = *ctx;
     IM_ASSERT(hook_id != 0);
-    for (auto& hook : g.Hooks)
+    for (ImGuiContext& g = *ctx; auto& hook : g.Hooks)
         if (hook.HookId == hook_id)
             hook.Type = ImGuiContextHookType_PendingRemoval_;
 }
@@ -14464,11 +14463,9 @@ void ImGui::DebugRenderViewportThumbnail(ImDrawList* draw_list, ImGuiViewportP* 
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = g.CurrentWindow;
 
-    ImVec2 scale = bb.GetSize() / viewport->Size;
-    ImVec2 off = bb.Min - viewport->Pos * scale;
     float alpha_mul = 1.0f;
     window->DrawList->AddRectFilled(bb.Min, bb.Max, GetColorU32(ImGuiCol_Border, alpha_mul * 0.40f));
-    for (auto* thumb_window : g.Windows)
+    for (ImVec2 scale = bb.GetSize() / viewport->Size, off = bb.Min - viewport->Pos * scale; auto* thumb_window : g.Windows)
     {
         if (!thumb_window->WasActive || (thumb_window->Flags & ImGuiWindowFlags_ChildWindow))
             continue;
@@ -14497,11 +14494,9 @@ static void RenderViewportsThumbnails()
 
     float SCALE = 1.0f / 8.0f;
     ImRect bb_full(g.Viewports[0]->Pos, g.Viewports[0]->Pos + g.Viewports[0]->Size);
-    ImVec2 p = window->DC.CursorPos;
-    ImVec2 off = p - bb_full.Min * SCALE;
 
     // Draw viewports
-    for (auto* viewport : g.Viewports)
+    for (ImVec2 p = window->DC.CursorPos, off = p - bb_full.Min * SCALE; auto* viewport : g.Viewports)
     {
         ImRect viewport_draw_bb(off + (viewport->Pos) * SCALE, off + (viewport->Pos + viewport->Size) * SCALE);
         ImGui::DebugRenderViewportThumbnail(window->DrawList, viewport, viewport_draw_bb);
