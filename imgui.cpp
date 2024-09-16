@@ -4297,8 +4297,7 @@ bool ImGui::ItemHoverable(const ImRect& bb, ImGuiID id, ImGuiItemFlags item_flag
 bool ImGui::IsClippedEx(const ImRect& bb, ImGuiID id)
 {
     ImGuiContext& g = *GImGui;
-    ImGuiWindow* window = g.CurrentWindow;
-    if (!bb.Overlaps(window->ClipRect))
+    if (ImGuiWindow* window = g.CurrentWindow; !bb.Overlaps(window->ClipRect))
         if (id == 0 || (id != g.ActiveId && id != g.ActiveIdPreviousFrame && id != g.NavId && id != g.NavActivateId))
             if (!g.ItemUnclipByLog)
                 return true;
@@ -5406,16 +5405,14 @@ void ImGui::FindHoveredWindowEx(const ImVec2& pos, bool find_first_and_in_any_vi
 
 bool ImGui::IsItemActive()
 {
-    ImGuiContext& g = *GImGui;
-    if (g.ActiveId)
+    if (ImGuiContext& g = *GImGui; g.ActiveId)
         return g.ActiveId == g.LastItemData.ID;
     return false;
 }
 
 bool ImGui::IsItemActivated()
 {
-    ImGuiContext& g = *GImGui;
-    if (g.ActiveId)
+    if (ImGuiContext& g = *GImGui; g.ActiveId)
         if (g.ActiveId == g.LastItemData.ID && g.ActiveIdPreviousFrame != g.LastItemData.ID)
             return true;
     return false;
@@ -5438,8 +5435,7 @@ bool ImGui::IsItemDeactivatedAfterEdit()
 // == GetItemID() == GetFocusID()
 bool ImGui::IsItemFocused()
 {
-    ImGuiContext& g = *GImGui;
-    if (g.NavId != g.LastItemData.ID || g.NavId == 0)
+    if (ImGuiContext& g = *GImGui; g.NavId != g.LastItemData.ID || g.NavId == 0)
         return false;
     return true;
 }
@@ -5906,9 +5902,7 @@ static ImVec2 CalcWindowAutoFitSize(ImGuiWindow* window, const ImVec2& size_cont
     ImGuiStyle& style = g.Style;
     const float decoration_w_without_scrollbars = window->DecoOuterSizeX1 + window->DecoOuterSizeX2 - window->ScrollbarSizes.x;
     const float decoration_h_without_scrollbars = window->DecoOuterSizeY1 + window->DecoOuterSizeY2 - window->ScrollbarSizes.y;
-    ImVec2 size_pad = window->WindowPadding * 2.0f;
-    ImVec2 size_desired = size_contents + size_pad + ImVec2(decoration_w_without_scrollbars, decoration_h_without_scrollbars);
-    if (window->Flags & ImGuiWindowFlags_Tooltip)
+    if (ImVec2 size_pad = window->WindowPadding * 2.0f, size_desired = size_contents + size_pad + ImVec2(decoration_w_without_scrollbars, decoration_h_without_scrollbars); window->Flags & ImGuiWindowFlags_Tooltip)
     {
         // Tooltip always resize
         return size_desired;
@@ -6232,8 +6226,6 @@ static int ImGui::UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& si
     }
 
     // Apply back modified position/size to window
-    const ImVec2 curr_pos = window->Pos;
-    const ImVec2 curr_size = window->SizeFull;
     if (size_target.x != FLT_MAX && (window->Size.x != size_target.x || window->SizeFull.x != size_target.x))
         window->Size.x = window->SizeFull.x = size_target.x;
     if (size_target.y != FLT_MAX && (window->Size.y != size_target.y || window->SizeFull.y != size_target.y))
@@ -6242,7 +6234,7 @@ static int ImGui::UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& si
         window->Pos.x = ImTrunc(pos_target.x);
     if (pos_target.y != FLT_MAX && window->Pos.y != ImTrunc(pos_target.y))
         window->Pos.y = ImTrunc(pos_target.y);
-    if (curr_pos.x != window->Pos.x || curr_pos.y != window->Pos.y || curr_size.x != window->SizeFull.x || curr_size.y != window->SizeFull.y)
+    if (const ImVec2 curr_pos = window->Pos, curr_size = window->SizeFull; curr_pos.x != window->Pos.x || curr_pos.y != window->Pos.y || curr_size.x != window->SizeFull.x || curr_size.y != window->SizeFull.y)
         MarkIniSettingsDirty(window);
 
     // Recalculate next expected border expected coordinates
@@ -12767,11 +12759,9 @@ static float ImGui::NavUpdatePageUpPageDown()
     if ((window->Flags & ImGuiWindowFlags_NoNavInputs) || g.NavWindowingTarget)
         return 0.0f;
 
-    const bool page_up_held = IsKeyDown(ImGuiKey_PageUp, ImGuiKeyOwner_NoOwner);
-    const bool page_down_held = IsKeyDown(ImGuiKey_PageDown, ImGuiKeyOwner_NoOwner);
     const bool home_pressed = IsKeyPressed(ImGuiKey_Home, ImGuiInputFlags_Repeat, ImGuiKeyOwner_NoOwner);
     const bool end_pressed = IsKeyPressed(ImGuiKey_End, ImGuiInputFlags_Repeat, ImGuiKeyOwner_NoOwner);
-    if (page_up_held == page_down_held && home_pressed == end_pressed) // Proceed if either (not both) are pressed, otherwise early out
+    if (const bool page_up_held = IsKeyDown(ImGuiKey_PageUp, ImGuiKeyOwner_NoOwner), page_down_held = IsKeyDown(ImGuiKey_PageDown, ImGuiKeyOwner_NoOwner); page_up_held == page_down_held && home_pressed == end_pressed) // Proceed if either (not both) are pressed, otherwise early out
         return 0.0f;
 
     if (g.NavLayer != ImGuiNavLayer_Main)
@@ -13718,8 +13708,7 @@ void ImGui::LogToClipboard(int auto_open_depth)
 
 void ImGui::LogToBuffer(int auto_open_depth)
 {
-    ImGuiContext& g = *GImGui;
-    if (g.LogEnabled)
+    if (ImGuiContext& g = *GImGui; g.LogEnabled)
         return;
     LogBegin(ImGuiLogType_Buffer, auto_open_depth);
 }
@@ -13859,8 +13848,7 @@ void ImGui::AddSettingsHandler(const ImGuiSettingsHandler* handler)
 
 void ImGui::RemoveSettingsHandler(const char* type_name)
 {
-    ImGuiContext& g = *GImGui;
-    if (ImGuiSettingsHandler* handler = FindSettingsHandler(type_name))
+    if (ImGuiContext& g = *GImGui; ImGuiSettingsHandler* handler = FindSettingsHandler(type_name))
         g.SettingsHandlers.erase(handler);
 }
 
@@ -16086,8 +16074,7 @@ void ImGui::DebugHookIdInfo(ImGuiID id, ImGuiDataType data_type, const void* dat
 static int StackToolFormatLevelInfo(ImGuiIDStackTool* tool, int n, bool format_for_ui, char* buf, size_t buf_size)
 {
     ImGuiStackLevelInfo* info = &tool->Results[n];
-    ImGuiWindow* window = (info->Desc[0] == 0 && n == 0) ? ImGui::FindWindowByID(info->ID) : NULL;
-    if (window)                                                                 // Source: window name (because the root ID don't call GetID() and so doesn't get hooked)
+    if (ImGuiWindow* window = (info->Desc[0] == 0 && n == 0) ? ImGui::FindWindowByID(info->ID) : NULL; window)  // Source: window name (because the root ID don't call GetID() and so doesn't get hooked)
         return ImFormatString(buf, buf_size, format_for_ui ? "\"%s\" [window]" : "%s", window->Name);
     if (info->QuerySuccess)                                                     // Source: GetID() hooks (prioritize over ItemInfo() because we frequently use patterns like: PushID(str), Button("") where they both have same id)
         return ImFormatString(buf, buf_size, (format_for_ui && info->DataType == ImGuiDataType_String) ? "\"%s\"" : "%s", info->Desc);
