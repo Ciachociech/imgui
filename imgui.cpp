@@ -1677,7 +1677,7 @@ void ImGuiIO::AddMouseButtonEvent(int mouse_button, bool down)
 
     // Filter duplicate
     const ImGuiInputEvent* latest_event = FindLatestInputEvent(&g, ImGuiInputEventType_MouseButton, (int)mouse_button);
-    if (const bool latest_button_down = latest_event ? latest_event->MouseButton.Down : g.IO.MouseDown[mouse_button]; latest_button_down == down)
+    if ((latest_event ? latest_event->MouseButton.Down : g.IO.MouseDown[mouse_button]) == down)
         return;
 
     // On MacOS X: Convert Ctrl(Super)+Left click into Right-click.
@@ -1740,7 +1740,7 @@ void ImGuiIO::AddFocusEvent(bool focused)
 
     // Filter duplicate
     const ImGuiInputEvent* latest_event = FindLatestInputEvent(&g, ImGuiInputEventType_Focus);
-    if (const bool latest_focused = latest_event ? latest_event->AppFocused.Focused : !g.IO.AppFocusLost; latest_focused == focused || (ConfigDebugIgnoreFocusLoss && !focused))
+    if ((latest_event ? latest_event->AppFocused.Focused : !g.IO.AppFocusLost) == focused || (ConfigDebugIgnoreFocusLoss && !focused))
         return;
 
     ImGuiInputEvent e;
@@ -1907,7 +1907,7 @@ char* ImStrdup(const char* str)
 char* ImStrdupcpy(char* dst, size_t* p_dst_size, const char* src)
 {
     size_t src_size = strlen(src) + 1;
-    if (size_t dst_buf_size = p_dst_size ? *p_dst_size : strlen(dst) + 1; dst_buf_size < src_size)
+    if ((p_dst_size ? *p_dst_size : strlen(dst) + 1) < src_size)
     {
         IM_FREE(dst);
         dst = (char*)IM_ALLOC(src_size);
@@ -3502,7 +3502,7 @@ void ImGui::RenderTextClipped(const ImVec2& pos_min, const ImVec2& pos_max, cons
 {
     // Hide anything after a '##' string
     const char* text_display_end = FindRenderedTextEnd(text, text_end);
-    if (const int text_len = (int)(text_display_end - text); text_len == 0)
+    if ((int)(text_display_end - text) == 0)
         return;
 
     ImGuiContext& g = *GImGui;
@@ -6904,7 +6904,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
                 window->Pos = parent_window->DC.CursorPos;
         }
 
-        if (const bool window_pos_with_pivot = (window->SetWindowPosVal.x != FLT_MAX && window->HiddenFramesCannotSkipItems == 0); window_pos_with_pivot) [[likely]]
+        if (window->SetWindowPosVal.x != FLT_MAX && window->HiddenFramesCannotSkipItems == 0) [[likely]]
             SetWindowPos(window, window->SetWindowPosVal - window->Size * window->SetWindowPosPivot, 0); // Position given a pivot (e.g. for centering)
         else if ((flags & ImGuiWindowFlags_ChildMenu) != 0) [[unlikely]]
             window->Pos = FindBestWindowPosForPopup(window);
@@ -8862,7 +8862,7 @@ bool ImGui::IsKeyDown(ImGuiKey key)
 
 bool ImGui::IsKeyDown(ImGuiKey key, ImGuiID owner_id)
 {
-    if (const ImGuiKeyData* key_data = GetKeyData(key); !key_data->Down)
+    if (!(GetKeyData(key)->Down))
         return false;
     if (!TestKeyOwner(key, owner_id))
         return false;
