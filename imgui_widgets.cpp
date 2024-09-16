@@ -272,8 +272,7 @@ void ImGui::Text(const char* fmt, ...)
 
 void ImGui::TextV(const char* fmt, va_list args)
 {
-    ImGuiWindow* window = GetCurrentWindow();
-    if (window->SkipItems)
+    if (ImGuiWindow* window = GetCurrentWindow(); window->SkipItems)
         return;
 
     const char* text, *text_end;
@@ -626,7 +625,6 @@ bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool
             hovered = true;
     if (g.NavActivateDownId == id)
     {
-        bool nav_activated_by_code = (g.NavActivateId == id);
         bool nav_activated_by_inputs = (g.NavActivatePressedId == id);
         if (!nav_activated_by_inputs && (item_flags & ImGuiItemFlags_ButtonRepeat))
         {
@@ -637,7 +635,7 @@ bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool
             const float t1 = ImMax(ImMax(key1->DownDuration, key2->DownDuration), key3->DownDuration);
             nav_activated_by_inputs = CalcTypematicRepeatAmount(t1 - g.IO.DeltaTime, t1, g.IO.KeyRepeatDelay, g.IO.KeyRepeatRate) > 0;
         }
-        if (nav_activated_by_code || nav_activated_by_inputs)
+        if ((g.NavActivateId == id) || nav_activated_by_inputs)
         {
             // Set active id so it can be queried by user via IsItemActive(), equivalent of holding the mouse button.
             pressed = true;
@@ -836,17 +834,14 @@ bool ImGui::CloseButton(ImGuiID id, const ImVec2& pos)
     // This may better be applied as a general hit-rect reduction mechanism for all widgets to ensure the area to move window is always accessible?
     const ImRect bb(pos, pos + ImVec2(g.FontSize, g.FontSize));
     ImRect bb_interact = bb;
-    const float area_to_visible_ratio = window->OuterRectClipped.GetArea() / bb.GetArea();
-    if (area_to_visible_ratio < 1.5f)
+    if ((window->OuterRectClipped.GetArea() / bb.GetArea()) < 1.5f)
         bb_interact.Expand(ImTrunc(bb_interact.GetSize() * -0.25f));
 
     // Tweak 2: We intentionally allow interaction when clipped so that a mechanical Alt,Right,Activate sequence can always close a window.
     // (this isn't the common behavior of buttons, but it doesn't affect the user because navigation tends to keep items visible in scrolling layer).
-    bool is_clipped = !ItemAdd(bb_interact, id);
-
     bool hovered, held;
     bool pressed = ButtonBehavior(bb_interact, id, &hovered, &held);
-    if (is_clipped)
+    if (!ItemAdd(bb_interact, id))
         return pressed;
 
     // Render
@@ -869,10 +864,9 @@ bool ImGui::CollapseButton(ImGuiID id, const ImVec2& pos)
     ImGuiWindow* window = g.CurrentWindow;
 
     ImRect bb(pos, pos + ImVec2(g.FontSize, g.FontSize));
-    bool is_clipped = !ItemAdd(bb, id);
     bool hovered, held;
     bool pressed = ButtonBehavior(bb, id, &hovered, &held, ImGuiButtonFlags_None);
-    if (is_clipped)
+    if (!ItemAdd(bb, id))
         return pressed;
 
     // Render
@@ -964,7 +958,6 @@ bool ImGui::ScrollbarEx(const ImRect& bb_frame, ImGuiID id, ImGuiAxis axis, ImS6
         return false;
 
     const ImGuiStyle& style = g.Style;
-    const bool allow_interaction = (alpha >= 1.0f);
 
     ImRect bb = bb_frame;
     bb.Expand(ImVec2(-ImClamp(IM_TRUNC((bb_frame_width - 2.0f) * 0.5f), 0.0f, 3.0f), -ImClamp(IM_TRUNC((bb_frame_height - 2.0f) * 0.5f), 0.0f, 3.0f)));
@@ -990,7 +983,7 @@ bool ImGui::ScrollbarEx(const ImRect& bb_frame, ImGuiID id, ImGuiAxis axis, ImS6
     const ImS64 scroll_max = ImMax((ImS64)1, size_contents_v - size_visible_v);
     float scroll_ratio = ImSaturate((float)*p_scroll_v / (float)scroll_max);
     float grab_v_norm = scroll_ratio * (scrollbar_size_v - grab_h_pixels) / scrollbar_size_v; // Grab position in normalized space
-    if (held && allow_interaction && grab_h_norm < 1.0f)
+    if (held && alpha >= 1.0f && grab_h_norm < 1.0f)
     {
         const float scrollbar_pos_v = bb.Min[axis];
         const float mouse_pos_v = g.IO.MousePos[axis];
@@ -1490,8 +1483,7 @@ void ImGui::TextLinkOpenURL(const char* label, const char* url)
 
 void ImGui::Spacing()
 {
-    ImGuiWindow* window = GetCurrentWindow();
-    if (window->SkipItems)
+    if (ImGuiWindow* window = GetCurrentWindow(); window->SkipItems)
         return;
     ItemSize(ImVec2(0, 0));
 }
@@ -1672,8 +1664,7 @@ void ImGui::SeparatorTextEx(ImGuiID id, const char* label, const char* label_end
 
 void ImGui::SeparatorText(const char* label)
 {
-    ImGuiWindow* window = GetCurrentWindow();
-    if (window->SkipItems)
+    if (ImGuiWindow* window = GetCurrentWindow(); window->SkipItems)
         return;
 
     // The SeparatorText() vs SeparatorTextEx() distinction is designed to be considerate that we may want:
@@ -1846,10 +1837,9 @@ bool ImGui::BeginCombo(const char* label, const char* preview_value, ImGuiComboF
 
     // Open on click
     bool hovered, held;
-    bool pressed = ButtonBehavior(bb, id, &hovered, &held);
     const ImGuiID popup_id = ImHashStr("##ComboPopup", 0, id);
     bool popup_open = IsPopupOpen(popup_id, ImGuiPopupFlags_None);
-    if (pressed && !popup_open)
+    if (ButtonBehavior(bb, id, &hovered, &held) && !popup_open)
     {
         OpenPopupEx(popup_id, ImGuiPopupFlags_None);
         popup_open = true;
@@ -1949,9 +1939,8 @@ bool ImGui::BeginComboPopup(ImGuiID popup_id, const ImRect& bb, ImGuiComboFlags 
     // We don't use BeginPopupEx() solely because we have a custom name string, which we could make an argument to BeginPopupEx()
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_Popup | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove;
     PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(g.Style.FramePadding.x, g.Style.WindowPadding.y)); // Horizontally align ourselves with the framed text
-    bool ret = Begin(name, NULL, window_flags);
     PopStyleVar();
-    if (!ret)
+    if (!Begin(name, NULL, window_flags))
     {
         EndPopup();
         IM_ASSERT(0);   // This should never happen as we tested for IsPopupOpen() above
@@ -2456,9 +2445,8 @@ bool ImGui::DragBehaviorT(ImGuiDataType data_type, TYPE* v, float v_speed, const
 
     // Clear current value on activation
     // Avoid altering values and clamping when we are _already_ past the limits and heading in the same direction, so e.g. if range is 0..255, current value is 300 and we are pushing to the right side, keep the 300.
-    const bool is_just_activated = g.ActiveIdIsJustActivated;
     const bool is_already_past_limits_and_pushing_outward = is_bounded && !is_wrapped && ((*v >= v_max && adjust_delta > 0.0f) || (*v <= v_min && adjust_delta < 0.0f));
-    if (is_just_activated || is_already_past_limits_and_pushing_outward)
+    if (g.ActiveIdIsJustActivated || is_already_past_limits_and_pushing_outward)
     {
         g.DragCurrentAccum = 0.0f;
         g.DragCurrentAccumDirty = false;
@@ -2692,8 +2680,7 @@ bool ImGui::DragScalarN(const char* label, ImGuiDataType data_type, void* p_data
     }
     PopID();
 
-    const char* label_end = FindRenderedTextEnd(label);
-    if (label != label_end)
+    if (const char* label_end = FindRenderedTextEnd(label); label != label_end)
     {
         SameLine(0, g.Style.ItemInnerSpacing.x);
         TextEx(label, label_end);
@@ -2726,8 +2713,7 @@ bool ImGui::DragFloat4(const char* label, float v[4], float v_speed, float v_min
 // NB: You likely want to specify the ImGuiSliderFlags_AlwaysClamp when using this.
 bool ImGui::DragFloatRange2(const char* label, float* v_current_min, float* v_current_max, float v_speed, float v_min, float v_max, const char* format, const char* format_max, ImGuiSliderFlags flags)
 {
-    ImGuiWindow* window = GetCurrentWindow();
-    if (window->SkipItems)
+    if (ImGuiWindow* window = GetCurrentWindow(); window->SkipItems)
         return false;
 
     ImGuiContext& g = *GImGui;
@@ -2780,8 +2766,7 @@ bool ImGui::DragInt4(const char* label, int v[4], float v_speed, int v_min, int 
 // NB: You likely want to specify the ImGuiSliderFlags_AlwaysClamp when using this.
 bool ImGui::DragIntRange2(const char* label, int* v_current_min, int* v_current_max, float v_speed, int v_min, int v_max, const char* format, const char* format_max, ImGuiSliderFlags flags)
 {
-    ImGuiWindow* window = GetCurrentWindow();
-    if (window->SkipItems)
+    if (ImGuiWindow* window = GetCurrentWindow(); window->SkipItems)
         return false;
 
     ImGuiContext& g = *GImGui;
@@ -2938,8 +2923,7 @@ TYPE ImGui::ScaleValueFromRatioT(ImGuiDataType data_type, float t, TYPE v_min, T
     else
     {
         // Linear slider
-        const bool is_floating_point = (data_type == ImGuiDataType_Float) || (data_type == ImGuiDataType_Double);
-        if (is_floating_point)
+        if (const bool is_floating_point = (data_type == ImGuiDataType_Float) || (data_type == ImGuiDataType_Double); is_floating_point)
         {
             result = ImLerp(v_min, v_max, t);
         }
@@ -3029,8 +3013,7 @@ bool ImGui::SliderBehaviorT(const ImRect& bb, ImGuiID id, ImGuiDataType data_typ
                 g.SliderCurrentAccumDirty = false;
             }
 
-            float input_delta = (axis == ImGuiAxis_X) ? GetNavTweakPressedAmount(axis) : -GetNavTweakPressedAmount(axis);
-            if (input_delta != 0.0f)
+            if (float input_delta = (axis == ImGuiAxis_X) ? GetNavTweakPressedAmount(axis) : -GetNavTweakPressedAmount(axis); input_delta != 0.0f)
             {
                 const bool tweak_slow = IsKeyDown((g.NavInputSource == ImGuiInputSource_Gamepad) ? ImGuiKey_NavGamepadTweakSlow : ImGuiKey_NavKeyboardTweakSlow);
                 const bool tweak_fast = IsKeyDown((g.NavInputSource == ImGuiInputSource_Gamepad) ? ImGuiKey_NavGamepadTweakFast : ImGuiKey_NavKeyboardTweakFast);
@@ -3055,7 +3038,6 @@ bool ImGui::SliderBehaviorT(const ImRect& bb, ImGuiID id, ImGuiDataType data_typ
                 g.SliderCurrentAccumDirty = true;
             }
 
-            float delta = g.SliderCurrentAccum;
             if (g.NavActivatePressedId == id && !g.ActiveIdIsJustActivated)
             {
                 ClearActiveID();
@@ -3064,7 +3046,7 @@ bool ImGui::SliderBehaviorT(const ImRect& bb, ImGuiID id, ImGuiDataType data_typ
             {
                 clicked_t = ScaleRatioFromValueT<TYPE, SIGNEDTYPE, FLOATTYPE>(data_type, *v, v_min, v_max, is_logarithmic, logarithmic_zero_epsilon, zero_deadzone_halfsize);
 
-                if ((clicked_t >= 1.0f && delta > 0.0f) || (clicked_t <= 0.0f && delta < 0.0f)) [[unlikely]] // This is to avoid applying the saturation when already past the limits
+                if (float delta = g.SliderCurrentAccum; (clicked_t >= 1.0f && delta > 0.0f) || (clicked_t <= 0.0f && delta < 0.0f)) [[unlikely]] // This is to avoid applying the saturation when already past the limits
                 {
                     set_new_value = false;
                     g.SliderCurrentAccum = 0.0f; // If pushing up against the limits, don't continue to accumulate
@@ -3692,8 +3674,7 @@ bool ImGui::InputScalar(const char* label, ImGuiDataType data_type, void* p_data
         if (flags & ImGuiInputTextFlags_ReadOnly)
             EndDisabled();
 
-        const char* label_end = FindRenderedTextEnd(label);
-        if (label != label_end)
+        if (const char* label_end = FindRenderedTextEnd(label); label != label_end)
         {
             SameLine(0, style.ItemInnerSpacing.x);
             TextEx(label, label_end);
@@ -3711,8 +3692,7 @@ bool ImGui::InputScalar(const char* label, ImGuiDataType data_type, void* p_data
 
 bool ImGui::InputScalarN(const char* label, ImGuiDataType data_type, void* p_data, int components, const void* p_step, const void* p_step_fast, const char* format, ImGuiInputTextFlags flags)
 {
-    ImGuiWindow* window = GetCurrentWindow();
-    if (window->SkipItems)
+    if (ImGuiWindow* window = GetCurrentWindow(); window->SkipItems)
         return false;
 
     ImGuiContext& g = *GImGui;
@@ -3733,8 +3713,7 @@ bool ImGui::InputScalarN(const char* label, ImGuiDataType data_type, void* p_dat
     }
     PopID();
 
-    const char* label_end = FindRenderedTextEnd(label);
-    if (label != label_end)
+    if (const char* label_end = FindRenderedTextEnd(label); label != label_end)
     {
         SameLine(0.0f, g.Style.ItemInnerSpacing.x);
         TextEx(label, label_end);
@@ -4696,8 +4675,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         else if (is_enter_pressed || is_gamepad_validate)
         {
             // Determine if we turn Enter into a \n character
-            bool ctrl_enter_for_new_line = (flags & ImGuiInputTextFlags_CtrlEnterForNewLine) != 0;
-            if (!is_multiline || is_gamepad_validate || (ctrl_enter_for_new_line && !io.KeyCtrl) || (!ctrl_enter_for_new_line && io.KeyCtrl))
+            if (bool ctrl_enter_for_new_line = (flags & ImGuiInputTextFlags_CtrlEnterForNewLine) != 0; !is_multiline || is_gamepad_validate || (ctrl_enter_for_new_line && !io.KeyCtrl) || (!ctrl_enter_for_new_line && io.KeyCtrl))
             {
                 validated = true;
                 if (io.ConfigInputTextEnterKeepActive && !is_multiline)
@@ -4842,8 +4820,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         // This also allows the user to use InputText() with ImGuiInputTextFlags_EnterReturnsTrue without maintaining any user-side storage
         // (please note that if you use this property along ImGuiInputTextFlags_CallbackResize you can end up with your temporary string object
         // unnecessarily allocating once a frame, either store your string data, either if you don't then don't use ImGuiInputTextFlags_CallbackResize).
-        const bool apply_edit_back_to_user_buffer = !revert_edit || (validated && (flags & ImGuiInputTextFlags_EnterReturnsTrue) != 0);
-        if (apply_edit_back_to_user_buffer)
+        if (!revert_edit || (validated && (flags & ImGuiInputTextFlags_EnterReturnsTrue) != 0))
         {
             // Apply new value immediately - copy modified buffer back
             // Note that as soon as the input box is active, the in-widget value gets priority over any underlying modification of the input buffer
@@ -5163,10 +5140,9 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         if (render_cursor)
         {
             state->CursorAnim += io.DeltaTime;
-            bool cursor_is_visible = (!g.IO.ConfigInputTextCursorBlink) || (state->CursorAnim <= 0.0f) || ImFmod(state->CursorAnim, 1.20f) <= 0.80f;
             ImVec2 cursor_screen_pos = ImTrunc(draw_pos + cursor_offset - draw_scroll);
             ImRect cursor_screen_rect(cursor_screen_pos.x, cursor_screen_pos.y - g.FontSize + 0.5f, cursor_screen_pos.x + 1.0f, cursor_screen_pos.y - 1.5f);
-            if (cursor_is_visible && cursor_screen_rect.Overlaps(clip_rect))
+            if (bool cursor_is_visible = (!g.IO.ConfigInputTextCursorBlink) || (state->CursorAnim <= 0.0f) || ImFmod(state->CursorAnim, 1.20f) <= 0.80f; cursor_is_visible && cursor_screen_rect.Overlaps(clip_rect))
                 draw_window->DrawList->AddLine(cursor_screen_rect.Min, cursor_screen_rect.GetBL(), GetColorU32(ImGuiCol_Text));
 
             // Notify OS of text input position for advanced IME (-1 x offset so that Windows IME can cover our cursor. Bit of an extra nicety.)
@@ -6074,8 +6050,7 @@ void ImGui::ColorTooltip(const char* text, const float* col, ImGuiColorEditFlags
 
     if (!BeginTooltipEx(ImGuiTooltipFlags_OverridePrevious, ImGuiWindowFlags_None))
         return;
-    const char* text_end = text ? FindRenderedTextEnd(text, NULL) : text;
-    if (text_end > text)
+    if (const char* text_end = text ? FindRenderedTextEnd(text, NULL) : text; text_end > text)
     {
         TextEx(text, text_end);
         Separator();
@@ -7294,8 +7269,7 @@ void ImGui::EndBoxSelect(const ImRect& scope_rect, ImGuiMultiSelectFlags ms_flag
     window->DrawList->AddRect(box_select_r.Min, box_select_r.Max, GetColorU32(ImGuiCol_NavHighlight)); // FIXME-MULTISELECT: Styling
 
     // Scroll
-    const bool enable_scroll = (ms_flags & ImGuiMultiSelectFlags_ScopeWindow) && (ms_flags & ImGuiMultiSelectFlags_BoxSelectNoScroll) == 0;
-    if (enable_scroll)
+    if ((ms_flags & ImGuiMultiSelectFlags_ScopeWindow) && (ms_flags & ImGuiMultiSelectFlags_BoxSelectNoScroll) == 0)
     {
         ImRect scroll_r = scope_rect;
         scroll_r.Expand(-g.FontSize);
@@ -7586,8 +7560,7 @@ void ImGui::MultiSelectItemHeader(ImGuiID id, bool* p_selected, ImGuiButtonFlags
                 storage->RangeSrcItem = item_data;
                 storage->RangeSelected = selected ? 1 : 0;
             }
-            const bool is_range_src = storage->RangeSrcItem == item_data;
-            if (is_range_src || is_range_dst || ms->RangeSrcPassedBy != ms->RangeDstPassedBy)
+            if (storage->RangeSrcItem == item_data || is_range_dst || ms->RangeSrcPassedBy != ms->RangeDstPassedBy)
             {
                 // Apply range-select value to visible items
                 IM_ASSERT(storage->RangeSrcItem != ImGuiSelectionUserData_Invalid && storage->RangeSelected != -1);
@@ -7832,8 +7805,7 @@ void ImGui::MultiSelectAddSetRange(ImGuiMultiSelectTempData* ms, bool selected, 
     // Merge contiguous spans into same request (unless NoRangeSelect is set which guarantees single-item ranges)
     if (ms->IO.Requests.Size > 0 && first_item == last_item && (ms->Flags & ImGuiMultiSelectFlags_NoRangeSelect) == 0)
     {
-        ImGuiSelectionRequest* prev = &ms->IO.Requests.Data[ms->IO.Requests.Size - 1];
-        if (prev->Type == ImGuiSelectionRequestType_SetRange && prev->RangeLastItem == ms->LastSubmittedItem && prev->Selected == selected)
+        if (ImGuiSelectionRequest* prev = &ms->IO.Requests.Data[ms->IO.Requests.Size - 1]; prev->Type == ImGuiSelectionRequestType_SetRange && prev->RangeLastItem == ms->LastSubmittedItem && prev->Selected == selected)
         {
             prev->RangeLastItem = last_item;
             return;
@@ -8226,9 +8198,8 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
 
     RenderFrame(frame_bb.Min, frame_bb.Max, GetColorU32(ImGuiCol_FrameBg), true, style.FrameRounding);
 
-    const int values_count_min = (plot_type == ImGuiPlotType_Lines) ? 2 : 1;
     int idx_hovered = -1;
-    if (values_count >= values_count_min)
+    if (const int values_count_min = (plot_type == ImGuiPlotType_Lines) ? 2 : 1; values_count >= values_count_min)
     {
         int res_w = ImMin((int)frame_size.x, values_count) + ((plot_type == ImGuiPlotType_Lines) ? -1 : 0);
         int item_count = values_count + ((plot_type == ImGuiPlotType_Lines) ? -1 : 0);
@@ -8517,8 +8488,7 @@ bool ImGui::BeginViewportSideBar(const char* name, ImGuiViewport* viewport_p, Im
 {
     IM_ASSERT(dir != ImGuiDir_None);
 
-    ImGuiWindow* bar_window = FindWindowByName(name);
-    if (!bar_window || bar_window->BeginCount == 0)
+    if (ImGuiWindow* bar_window = FindWindowByName(name); !bar_window || bar_window->BeginCount == 0)
     {
         // Calculate and set window size/position
         ImGuiViewportP* viewport = (ImGuiViewportP*)(void*)(viewport_p ? viewport_p : GetMainViewport());
@@ -8992,9 +8962,7 @@ static int IMGUI_CDECL TabItemComparerBySection(const void* lhs, const void* rhs
 {
     const ImGuiTabItem* a = (const ImGuiTabItem*)lhs;
     const ImGuiTabItem* b = (const ImGuiTabItem*)rhs;
-    const int a_section = TabItemGetSectionIdx(a);
-    const int b_section = TabItemGetSectionIdx(b);
-    if (a_section != b_section)
+    if (const int a_section = TabItemGetSectionIdx(a), b_section = TabItemGetSectionIdx(b); a_section != b_section)
         return a_section - b_section;
     return (int)(a->IndexDuringLayout - b->IndexDuringLayout);
 }
@@ -9218,8 +9186,7 @@ static void ImGui::TabBarLayout(ImGuiTabBar* tab_bar)
     }
 
     // Tab List Popup (will alter tab_bar->BarRect and therefore the available width!)
-    const bool tab_list_popup_button = (tab_bar->Flags & ImGuiTabBarFlags_TabListPopupButton) != 0;
-    if (tab_list_popup_button)
+    if ((tab_bar->Flags & ImGuiTabBarFlags_TabListPopupButton) != 0)
         if (ImGuiTabItem* tab_to_select = TabBarTabListPopupButton(tab_bar)) // NB: Will alter BarRect.Min.x!
             scroll_to_tab_id = tab_bar->SelectedTabId = tab_to_select->ID;
 
@@ -9716,8 +9683,7 @@ static ImGuiTabItem* ImGui::TabBarTabListPopupButton(ImGuiTabBar* tab_bar)
 bool    ImGui::BeginTabItem(const char* label, bool* p_open, ImGuiTabItemFlags flags)
 {
     ImGuiContext& g = *GImGui;
-    ImGuiWindow* window = g.CurrentWindow;
-    if (window->SkipItems)
+    if (ImGuiWindow* window = g.CurrentWindow; window->SkipItems)
         return false;
 
     ImGuiTabBar* tab_bar = g.CurrentTabBar;
@@ -9740,8 +9706,7 @@ bool    ImGui::BeginTabItem(const char* label, bool* p_open, ImGuiTabItemFlags f
 void    ImGui::EndTabItem()
 {
     ImGuiContext& g = *GImGui;
-    ImGuiWindow* window = g.CurrentWindow;
-    if (window->SkipItems)
+    if (ImGuiWindow* window = g.CurrentWindow; window->SkipItems)
         return;
 
     ImGuiTabBar* tab_bar = g.CurrentTabBar;
@@ -9751,16 +9716,14 @@ void    ImGui::EndTabItem()
         return;
     }
     IM_ASSERT(tab_bar->LastTabItemIdx >= 0);
-    ImGuiTabItem* tab = &tab_bar->Tabs[tab_bar->LastTabItemIdx];
-    if (!(tab->Flags & ImGuiTabItemFlags_NoPushId))
+    if (ImGuiTabItem* tab = &tab_bar->Tabs[tab_bar->LastTabItemIdx]; !(tab->Flags & ImGuiTabItemFlags_NoPushId))
         PopID();
 }
 
 bool    ImGui::TabItemButton(const char* label, ImGuiTabItemFlags flags)
 {
     ImGuiContext& g = *GImGui;
-    ImGuiWindow* window = g.CurrentWindow;
-    if (window->SkipItems)
+    if (ImGuiWindow* window = g.CurrentWindow; window->SkipItems)
         return false;
 
     ImGuiTabBar* tab_bar = g.CurrentTabBar;
@@ -9964,8 +9927,7 @@ bool    ImGui::TabItemEx(ImGuiTabBar* tab_bar, const char* label, bool* p_open, 
     RenderNavHighlight(bb, id);
 
     // Select with right mouse button. This is so the common idiom for context menu automatically highlight the current widget.
-    const bool hovered_unblocked = IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup);
-    if (hovered_unblocked && (IsMouseClicked(1) || IsMouseReleased(1)) && !is_tab_button)
+    if (IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup) && (IsMouseClicked(1) || IsMouseReleased(1)) && !is_tab_button)
         TabBarQueueFocus(tab_bar, tab);
 
     if (tab_bar->Flags & ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)
@@ -10008,8 +9970,7 @@ bool    ImGui::TabItemEx(ImGuiTabBar* tab_bar, const char* label, bool* p_open, 
 void    ImGui::SetTabItemClosed(const char* label)
 {
     ImGuiContext& g = *GImGui;
-    bool is_within_manual_tab_bar = g.CurrentTabBar && !(g.CurrentTabBar->Flags & ImGuiTabBarFlags_DockNode);
-    if (is_within_manual_tab_bar)
+    if (g.CurrentTabBar && !(g.CurrentTabBar->Flags & ImGuiTabBarFlags_DockNode))
     {
         ImGuiTabBar* tab_bar = g.CurrentTabBar;
         ImGuiID tab_id = TabBarCalcTabID(tab_bar, label, NULL);

@@ -463,8 +463,7 @@ void ImDrawList::_PopUnusedDrawCmd()
 {
     while (CmdBuffer.Size > 0)
     {
-        ImDrawCmd* curr_cmd = &CmdBuffer.Data[CmdBuffer.Size - 1];
-        if (curr_cmd->ElemCount != 0 || curr_cmd->UserCallback)
+        if (ImDrawCmd* curr_cmd = &CmdBuffer.Data[CmdBuffer.Size - 1]; curr_cmd->ElemCount != 0 || curr_cmd->UserCallback)
             return;// break;
         CmdBuffer.pop_back();
     }
@@ -520,8 +519,7 @@ void ImDrawList::_OnChangedClipRect()
     IM_ASSERT(!curr_cmd->UserCallback);
 
     // Try to merge with previous command if it matches, else use current command
-    ImDrawCmd* prev_cmd = curr_cmd - 1;
-    if (curr_cmd->ElemCount == 0 && CmdBuffer.Size > 1 && ImDrawCmd_HeaderCompare(&_CmdHeader, prev_cmd) == 0 && ImDrawCmd_AreSequentialIdxOffset(prev_cmd, curr_cmd) && !(prev_cmd->UserCallback))
+    if (ImDrawCmd* prev_cmd = curr_cmd - 1; curr_cmd->ElemCount == 0 && CmdBuffer.Size > 1 && ImDrawCmd_HeaderCompare(&_CmdHeader, prev_cmd) == 0 && ImDrawCmd_AreSequentialIdxOffset(prev_cmd, curr_cmd) && !(prev_cmd->UserCallback))
     {
         CmdBuffer.pop_back();
         return;
@@ -543,8 +541,7 @@ void ImDrawList::_OnChangedTextureID()
     IM_ASSERT(!(curr_cmd->UserCallback));
 
     // Try to merge with previous command if it matches, else use current command
-    ImDrawCmd* prev_cmd = curr_cmd - 1;
-    if (curr_cmd->ElemCount == 0 && CmdBuffer.Size > 1 && ImDrawCmd_HeaderCompare(&_CmdHeader, prev_cmd) == 0 && ImDrawCmd_AreSequentialIdxOffset(prev_cmd, curr_cmd) && !(prev_cmd->UserCallback))
+    if (ImDrawCmd* prev_cmd = curr_cmd - 1; curr_cmd->ElemCount == 0 && CmdBuffer.Size > 1 && ImDrawCmd_HeaderCompare(&_CmdHeader, prev_cmd) == 0 && ImDrawCmd_AreSequentialIdxOffset(prev_cmd, curr_cmd) && !(prev_cmd->UserCallback))
     {
         CmdBuffer.pop_back();
         return;
@@ -572,8 +569,7 @@ void ImDrawList::_OnChangedVtxOffset()
 int ImDrawList::_CalcCircleAutoSegmentCount(float radius) const
 {
     // Automatic segment count
-    const int radius_idx = (int)(radius + 0.999999f); // ceil to never reduce accuracy
-    if (radius_idx >= 0 && radius_idx < IM_ARRAYSIZE(_Data->CircleSegmentCounts)) [[likely]]
+    if (const int radius_idx = (int)(radius + 0.999999f); /* ceil to never reduce accuracy */ radius_idx >= 0 && radius_idx < IM_ARRAYSIZE(_Data->CircleSegmentCounts)) [[likely]]
         return _Data->CircleSegmentCounts[radius_idx]; // Use cached value
     else [[unlikely]]
         return IM_DRAWLIST_CIRCLE_AUTO_SEGMENT_CALC(radius, _Data->CircleSegmentMaxError);
@@ -1306,9 +1302,7 @@ static void PathBezierCubicCurveToCasteljau(ImVector<ImVec2>* path, float x1, fl
 
 static void PathBezierQuadraticCurveToCasteljau(ImVector<ImVec2>* path, float x1, float y1, float x2, float y2, float x3, float y3, float tess_tol, int level)
 {
-    float dx = x3 - x1, dy = y3 - y1;
-    float det = (x2 - x3) * dy - (y2 - y3) * dx;
-    if (det * det * 4.0f < tess_tol * (dx * dx + dy * dy))
+    if (float dx = x3 - x1, dy = y3 - y1, det = (x2 - x3) * dy - (y2 - y3) * dx; det * det * 4.0f < tess_tol * (dx * dx + dy * dy))
     {
         path->push_back(ImVec2(x3, y3));
     }
@@ -1902,9 +1896,8 @@ bool ImTriangulator::IsEar(int i0, int i1, int i2, const ImVec2& v0, const ImVec
 {
     ImTriangulatorNode** p_end = _Reflexes.Data + _Reflexes.Size;
     for (auto** p = _Reflexes.Data; p < p_end; p++)
-    {
-        ImTriangulatorNode* reflex = *p;
-        if (reflex->Index != i0 && reflex->Index != i1 && reflex->Index != i2)
+    { 
+        if (ImTriangulatorNode* reflex = *p; reflex->Index != i0 && reflex->Index != i1 && reflex->Index != i2)
             if (ImTriangleContainsPoint(v0, v1, v2, reflex->Pos))
                 return false;
     }
@@ -2969,7 +2962,6 @@ static bool ImFontAtlasBuildWithStbTruetype(ImFontAtlas* atlas)
     // 8. Render/rasterize font characters into the texture
     for (auto src_i = 0; src_i < src_tmp_array.Size; src_i++)
     {
-        ImFontConfig& cfg = atlas->ConfigData[src_i];
         ImFontBuildSrcData& src_tmp = src_tmp_array[src_i];
         if (src_tmp.GlyphsCount == 0)
             continue;
@@ -2977,7 +2969,7 @@ static bool ImFontAtlasBuildWithStbTruetype(ImFontAtlas* atlas)
         stbtt_PackFontRangesRenderIntoRects(&spc, &src_tmp.FontInfo, &src_tmp.PackRange, 1, src_tmp.Rects);
 
         // Apply multiply operator
-        if (cfg.RasterizerMultiply != 1.0f)
+        if (ImFontConfig& cfg = atlas->ConfigData[src_i]; cfg.RasterizerMultiply != 1.0f)
         {
             unsigned char multiply_table[256];
             ImFontAtlasBuildMultiplyCalcLookupTable(multiply_table, cfg.RasterizerMultiply);
@@ -3691,17 +3683,15 @@ void ImFont::BuildLookupTable()
     // Setup Ellipsis character. It is required for rendering elided text. We prefer using U+2026 (horizontal ellipsis).
     // However some old fonts may contain ellipsis at U+0085. Here we auto-detect most suitable ellipsis character.
     // FIXME: Note that 0x2026 is rarely included in our font ranges. Because of this we are more likely to use three individual dots.
-    const ImWchar ellipsis_chars[] = { (ImWchar)0x2026, (ImWchar)0x0085 };
     const ImWchar dots_chars[] = { (ImWchar)'.', (ImWchar)0xFF0E };
-    if (EllipsisChar == (ImWchar)-1)
+    if (const ImWchar ellipsis_chars[] = { (ImWchar)0x2026, (ImWchar)0x0085 }; EllipsisChar == (ImWchar)-1)
         EllipsisChar = FindFirstExistingGlyph(this, ellipsis_chars, IM_ARRAYSIZE(ellipsis_chars));
-    const ImWchar dot_char = FindFirstExistingGlyph(this, dots_chars, IM_ARRAYSIZE(dots_chars));
     if (EllipsisChar != (ImWchar)-1)
     {
         EllipsisCharCount = 1;
         EllipsisWidth = EllipsisCharStep = FindGlyph(EllipsisChar)->X1;
     }
-    else if (dot_char != (ImWchar)-1)
+    else if (const ImWchar dot_char = FindFirstExistingGlyph(this, dots_chars, IM_ARRAYSIZE(dots_chars)); dot_char != (ImWchar)-1)
     {
         const ImFontGlyph* glyph = FindGlyph(dot_char);
         EllipsisChar = dot_char;
@@ -3747,9 +3737,8 @@ void ImFont::AddGlyph(const ImFontConfig* cfg, ImWchar codepoint, float x0, floa
     if (cfg)
     {
         // Clamp & recenter if needed
-        const float advance_x_original = advance_x;
         advance_x = ImClamp(advance_x, cfg->GlyphMinAdvanceX, cfg->GlyphMaxAdvanceX);
-        if (advance_x != advance_x_original)
+        if (const float advance_x_original = advance_x; advance_x != advance_x_original)
         {
             float char_off_x = cfg->PixelSnapH ? ImTrunc((advance_x - advance_x_original) * 0.5f) : (advance_x - advance_x_original) * 0.5f;
             x0 += char_off_x;
@@ -3851,7 +3840,6 @@ const char* ImFont::CalcWordWrapPositionA(float scale, const char* text, const c
     float word_width = 0.0f;
     float blank_width = 0.0f;
     [[assume(scale != 0.0f)]];
-    wrap_width /= scale; // We work with unscaled widths to avoid scaling every characters
 
     const char* word_end = text;
     const char* prev_word_end = NULL;
@@ -3915,7 +3903,7 @@ const char* ImFont::CalcWordWrapPositionA(float scale, const char* text, const c
         }
 
         // We ignore blank width at the end of the line (they can be skipped)
-        if (line_width + word_width > wrap_width)
+        if (wrap_width /= scale; /* We work with unscaled widths to avoid scaling every characters */ line_width + word_width > wrap_width)
         {
             // Words that cannot possibly fit within an entire line will be cut anywhere.
             if (word_width < wrap_width)
@@ -3944,13 +3932,12 @@ ImVec2 ImFont::CalcTextSizeA(float size, float max_width, float wrap_width, cons
     ImVec2 text_size = ImVec2(0, 0);
     float line_width = 0.0f;
 
-    const bool word_wrap_enabled = (wrap_width > 0.0f);
     const char* word_wrap_eol = NULL;
 
     const char* s = text_begin;
     while (s < text_end)
     {
-        if (word_wrap_enabled)
+        if (wrap_width > 0.0f)
         {
             // Calculate how far we can render. Requires two passes on the string data but keeps the code simple and not intrusive for what's essentially an uncommon feature.
             if (!word_wrap_eol)

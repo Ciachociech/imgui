@@ -831,8 +831,7 @@ void ImGui::TableUpdateLayout(ImGuiTable* table)
             table->IsSortSpecsDirty = true;
 
         // Auto-fit unsized columns
-        const bool start_auto_fit = (column->Flags & ImGuiTableColumnFlags_WidthFixed) ? (column->WidthRequest < 0.0f) : (column->StretchWeight < 0.0f);
-        if (start_auto_fit)
+        if ((column->Flags & ImGuiTableColumnFlags_WidthFixed) ? (column->WidthRequest < 0.0f) : (column->StretchWeight < 0.0f))
             column->AutoFitQueue = column->CannotSkipItemsQueue = (1 << 3) - 1; // Fit for three frames
 
         if (!column->IsEnabled)
@@ -1915,13 +1914,11 @@ void ImGui::TableEndRow(ImGuiTable* table)
     const float bg_y1 = table->RowPosY1;
     const float bg_y2 = table->RowPosY2;
     const bool unfreeze_rows_actual = (table->CurrentRow + 1 == table->FreezeRowsCount);
-    const bool unfreeze_rows_request = (table->CurrentRow + 1 == table->FreezeRowsRequest);
     ImGuiTableInstanceData* table_instance = TableGetInstanceData(table, table->InstanceCurrent);
     if ((table->RowFlags & ImGuiTableRowFlags_Headers) && (table->CurrentRow == 0 || (table->LastRowFlags & ImGuiTableRowFlags_Headers)))
         table_instance->LastTopHeadersRowHeight += bg_y2 - bg_y1;
 
-    const bool is_visible = (bg_y2 >= table->InnerClipRect.Min.y && bg_y1 <= table->InnerClipRect.Max.y);
-    if (is_visible)
+    if (bg_y2 >= table->InnerClipRect.Min.y && bg_y1 <= table->InnerClipRect.Max.y)
     {
         // Update data for TableGetHoveredRow()
         if (table->HoveredColumnBody != -1 && g.IO.MousePos.y >= bg_y1 && g.IO.MousePos.y < bg_y2 && table_instance->HoveredRowNext < 0)
@@ -1996,7 +1993,7 @@ void ImGui::TableEndRow(ImGuiTable* table)
     // End frozen rows (when we are past the last frozen row line, teleport cursor and alter clipping rectangle)
     // We need to do that in TableEndRow() instead of TableBeginRow() so the list clipper can mark end of row and
     // get the new cursor position.
-    if (unfreeze_rows_request)
+    if (table->CurrentRow + 1 == table->FreezeRowsRequest)
         for (auto column_n = 0; column_n < table->ColumnsCount; column_n++)
             table->Columns[column_n].NavLayerCurrent = ImGuiNavLayer_Main;
     if (unfreeze_rows_actual)
@@ -2715,13 +2712,12 @@ void ImGui::TableDrawBorders(ImGuiTable* table)
             ImGuiTableColumn* column = &table->Columns[column_n];
             const bool is_hovered = (table->HoveredColumnBorder == column_n);
             const bool is_resized = (table->ResizedColumn == column_n) && (table->InstanceInteracted == table->InstanceCurrent);
-            const bool is_resizable = (column->Flags & (ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_NoDirectResize_)) == 0;
             const bool is_frozen_separator = (table->FreezeColumnsCount == order_n + 1);
             if (column->MaxX > table->InnerClipRect.Max.x && !is_resized)
                 continue;
 
             // Decide whether right-most column is visible
-            if (column->NextEnabledColumn == -1 && !is_resizable)
+            if (column->NextEnabledColumn == -1 && (column->Flags & (ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_NoDirectResize_)) != 0)
                 if ((table->Flags & ImGuiTableFlags_SizingMask_) != ImGuiTableFlags_SizingFixedSame || (table->Flags & ImGuiTableFlags_NoHostExtendX))
                     continue;
             if (column->MaxX <= column->ClipRect.Min.x) // FIXME-TABLE FIXME-STYLE: Assume BorderSize==1, this is problematic if we want to increase the border size..
@@ -2890,9 +2886,7 @@ void ImGui::TableSortSpecsSanitize(ImGuiTable* table)
         IM_ASSERT(sort_order_count < (int)sizeof(sort_order_mask) * 8);
     }
 
-    const bool need_fix_linearize = ((ImU64)1 << sort_order_count) != (sort_order_mask + 1);
-    const bool need_fix_single_sort_order = (sort_order_count > 1) && !(table->Flags & ImGuiTableFlags_SortMulti);
-    if (need_fix_linearize || need_fix_single_sort_order)
+    if (const bool need_fix_single_sort_order = (sort_order_count > 1) && !(table->Flags & ImGuiTableFlags_SortMulti); ((ImU64)1 << sort_order_count) != (sort_order_mask + 1) || need_fix_single_sort_order)
     {
         ImU64 fixed_mask = 0x00;
         for (auto sort_n = 0; sort_n < sort_order_count; sort_n++)
@@ -3186,8 +3180,7 @@ void ImGui::TableHeader(const char* label)
     //window->DrawList->AddCircleFilled(ImVec2(ellipsis_max, label_pos.y), 40, IM_COL32_WHITE);
     RenderTextEllipsis(window->DrawList, label_pos, ImVec2(ellipsis_max, label_pos.y + label_height + g.Style.FramePadding.y), ellipsis_max, ellipsis_max, label, label_end, &label_size);
 
-    const bool text_clipped = label_size.x > (ellipsis_max - label_pos.x);
-    if (text_clipped && hovered && g.ActiveId == 0)
+    if ((label_size.x > (ellipsis_max - label_pos.x)) && hovered && g.ActiveId == 0)
         SetItemTooltip("%.*s", (int)(label_end - label), label);
 
     // We don't use BeginPopupContextItem() because we want the popup to stay up even after the column is hidden
@@ -3421,12 +3414,11 @@ void ImGui::TableDrawDefaultContextMenu(ImGuiTable* table, ImGuiTableFlags flags
 
     bool want_separator = false;
     const int column_n = (table->ContextPopupColumn >= 0 && table->ContextPopupColumn < table->ColumnsCount) ? table->ContextPopupColumn : -1;
-    ImGuiTableColumn* column = (column_n != -1) ? &table->Columns[column_n] : NULL;
 
     // Sizing
     if (flags_for_section_to_display & ImGuiTableFlags_Resizable)
     {
-        if (column)
+        if (ImGuiTableColumn* column = (column_n != -1) ? &table->Columns[column_n] : NULL; column)
         {
             const bool can_resize = !(column->Flags & ImGuiTableColumnFlags_NoResize) && column->IsEnabled;
             if (MenuItem(LocalizeGetMsg(ImGuiLocKey_TableSizeOne), NULL, false, can_resize)) // "###SizeOne"
